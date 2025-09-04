@@ -1,0 +1,68 @@
+package org.example.seasontonebackend.member.domain;
+
+
+
+import jakarta.persistence.*;
+
+import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.Collections;
+
+@Builder
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+public class Member implements UserDetails {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // 기본키
+
+    private String name; // 이름
+
+    @Column(nullable = false, unique = true)
+    private String email; // 이메일 유일해야함
+
+    private String password; // 비밀번호
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private Role role = Role.User; // 권한
+
+
+    // ===== UserDetails 구현 =====
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singleton(new SimpleGrantedAuthority(role.name()));
+    }
+
+    @Override
+    public String getUsername() {
+        return email; // 로그인 ID로 email 사용
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true; // 만료 여부 체크 로직 없으면 true
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true; // 잠김 여부 체크 로직 없으면 true
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true; // 패스워드 만료 여부 체크 로직 없으면 true
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true; // 활성화 여부 체크 로직 없으면 true
+    }
+}
