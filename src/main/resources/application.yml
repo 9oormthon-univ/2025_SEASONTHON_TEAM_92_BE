@@ -32,3 +32,7 @@ vworld:
   api:
     key: D2B43972-B325-3DEF-9F41-FF3316FD3AB0
     url: http://api.vworld.kr/req/address
+
+server:
+  tomcat:
+    connection-timeout: 0
