@@ -34,6 +34,9 @@ public class Member implements UserDetails {
     @Builder.Default
     private Role role = Role.User; // 권한
 
+    private String building;
+
+    private String dong;
 
     // ===== UserDetails 구현 =====
     @Override

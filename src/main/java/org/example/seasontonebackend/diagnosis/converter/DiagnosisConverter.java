@@ -9,6 +9,8 @@ import org.example.seasontonebackend.diagnosis.dto.DiagnosisResponseDTO;
 import org.example.seasontonebackend.member.domain.Member;
 import org.example.seasontonebackend.member.repository.MemberRepository;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class DiagnosisConverter {
