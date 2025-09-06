@@ -4,6 +4,7 @@ package org.example.seasontonebackend.member.controller;
 
 import org.example.seasontonebackend.member.auth.JwtTokenProvider;
 import org.example.seasontonebackend.member.domain.Member;
+import org.example.seasontonebackend.member.domain.Role;
 import org.example.seasontonebackend.member.dto.MemberCreateDto;
 import org.example.seasontonebackend.member.dto.MemberLoginDto;
 import org.example.seasontonebackend.member.dto.MemberProfileDto;
@@ -51,6 +52,10 @@ public class MemberController {
     public ResponseEntity<?> memberProfile(@AuthenticationPrincipal Member member) {
         MemberProfileDto memberProfileDto = memberService.getMemberProfile(member);
         return new ResponseEntity<>(memberProfileDto, HttpStatus.OK);
+
+        if (member.getRole() == Role.Admin) {
+            throw new IllegalStateException();
+        }
     }
 
 
