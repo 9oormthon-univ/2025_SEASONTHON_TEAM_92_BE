@@ -4,7 +4,7 @@ import lombok.*;
 
 import java.util.List;
 
-public class DiagnosisRequestDTO {
+public class MissionRequestDTO {
 
     @Getter
     @Setter
