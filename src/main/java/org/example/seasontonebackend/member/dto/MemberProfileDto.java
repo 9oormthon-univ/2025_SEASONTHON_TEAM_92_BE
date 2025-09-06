@@ -9,5 +9,7 @@ import lombok.Getter;
 @Getter
 public class MemberProfileDto {
     private String profileName;
+    private String profileDong;
+    private String profileBuilding;
     private String profileEmail;
 }
