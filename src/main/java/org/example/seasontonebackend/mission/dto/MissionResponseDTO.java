@@ -1,4 +1,4 @@
-package org.example.seasontonebackend.Mission.dto;
+package org.example.seasontonebackend.mission.dto;
 
 import lombok.*;
 
@@ -49,6 +49,37 @@ public class MissionResponseDTO {
         private ComparisonData buildingComparison;
         private ComparisonData neighborhoodComparison;
         private List<String> insights;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class MissionSummary {
+        private Long missionId;
+        private String category;
+        private String title;
+        private LocalDate startDate;
+        private LocalDate endDate;
+        private Boolean isActive;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class MissionDetail {
+        private Long missionId;
+        private String category;
+        private String title;
+        private String description;
+        private LocalDate startDate;
+        private LocalDate endDate;
+        private Boolean isActive;
+        private List<MissionQuestion> questions;
+        private java.time.LocalDateTime createdAt;
     }
 
     @Getter

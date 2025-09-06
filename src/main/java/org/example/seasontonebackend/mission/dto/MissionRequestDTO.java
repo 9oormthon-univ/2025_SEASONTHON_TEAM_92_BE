@@ -1,4 +1,4 @@
-package org.example.seasontonebackend.Mission.dto;
+package org.example.seasontonebackend.mission.dto;
 
 import lombok.*;
 

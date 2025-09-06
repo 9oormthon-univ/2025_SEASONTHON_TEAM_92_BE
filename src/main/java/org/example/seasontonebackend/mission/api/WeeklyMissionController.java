@@ -1,10 +1,10 @@
-package org.example.seasontonebackend.Mission.api;
+package org.example.seasontonebackend.mission.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.seasontonebackend.Mission.application.MissionService;
-import org.example.seasontonebackend.Mission.dto.MissionRequestDTO;
-import org.example.seasontonebackend.Mission.dto.MissionResponseDTO;
+import org.example.seasontonebackend.mission.application.MissionService;
+import org.example.seasontonebackend.mission.dto.MissionRequestDTO;
+import org.example.seasontonebackend.mission.dto.MissionResponseDTO;
 import org.example.seasontonebackend.member.domain.Member;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,12 +14,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/diagnosis/missions")
+@RequestMapping("/mission/weekly")
 @RequiredArgsConstructor
 @Slf4j
 public class WeeklyMissionController {
 
-    private final MissionService diagnosisService;
+    private final MissionService missionService;
 
     // 현재 활성 미션 조회
     @GetMapping("/current")
@@ -27,7 +27,7 @@ public class WeeklyMissionController {
             @AuthenticationPrincipal Member member) {
 
         try {
-            MissionResponseDTO.CurrentMission mission = diagnosisService.getCurrentMission(member.getId());
+            MissionResponseDTO.CurrentMission mission = missionService.getCurrentMission(member.getId());
             return ResponseEntity.ok(MissionResponseDTO.ApiResponse.success(mission));
 
         } catch (Exception e) {
@@ -45,7 +45,7 @@ public class WeeklyMissionController {
             @AuthenticationPrincipal Member member) {
 
         try {
-            Long responseId = diagnosisService.participateInMission(member.getId(), missionId, request);
+            Long responseId = missionService.participateInMission(member.getId(), missionId, request);
 
             // 총점 계산
             Integer totalScore = request.getResponses().stream()
@@ -74,7 +74,7 @@ public class WeeklyMissionController {
             @AuthenticationPrincipal Member member) {
 
         try {
-            MissionResponseDTO.MissionResult result = diagnosisService.getMissionResult(member.getId(), missionId);
+            MissionResponseDTO.MissionResult result = missionService.getMissionResult(member.getId(), missionId);
             return ResponseEntity.ok(MissionResponseDTO.ApiResponse.success(result));
 
         } catch (Exception e) {
