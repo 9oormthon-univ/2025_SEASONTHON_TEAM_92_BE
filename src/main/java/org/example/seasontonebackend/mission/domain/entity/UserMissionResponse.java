@@ -1,4 +1,4 @@
-package org.example.seasontonebackend.Mission.domain.entity;
+package org.example.seasontonebackend.mission.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

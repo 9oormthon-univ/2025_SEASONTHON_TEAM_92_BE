@@ -1,4 +1,4 @@
-package org.example.seasontonebackend.Mission.domain.entity;
+package org.example.seasontonebackend.mission.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -47,4 +47,41 @@ public class WeeklyMission {
     @OneToMany(mappedBy = "mission", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<MissionQuestion> questions = new ArrayList<>();
+
+    // Lombok이 제대로 동작하지 않을 경우를 위한 명시적 getter 메소드들
+    public Long getMissionId() {
+        return missionId;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public List<MissionQuestion> getQuestions() {
+        return questions;
+    }
 }

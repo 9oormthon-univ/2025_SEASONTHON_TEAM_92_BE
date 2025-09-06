@@ -1,16 +1,16 @@
-package org.example.seasontonebackend.Mission.application;
+package org.example.seasontonebackend.mission.application;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.seasontonebackend.Mission.converter.MissionConverter;
-import org.example.seasontonebackend.Mission.domain.entity.MissionQuestion;
-import org.example.seasontonebackend.Mission.domain.entity.UserMissionResponse;
-import org.example.seasontonebackend.Mission.domain.entity.WeeklyMission;
-import org.example.seasontonebackend.Mission.domain.repository.UserMissionResponseRepository;
-import org.example.seasontonebackend.Mission.domain.repository.WeeklyMissionRepository;
-import org.example.seasontonebackend.Mission.dto.MissionRequestDTO;
-import org.example.seasontonebackend.Mission.dto.MissionResponseDTO;
-import org.example.seasontonebackend.Mission.exception.MissionException;
+import org.example.seasontonebackend.mission.converter.MissionConverter;
+import org.example.seasontonebackend.mission.domain.entity.MissionQuestion;
+import org.example.seasontonebackend.mission.domain.entity.UserMissionResponse;
+import org.example.seasontonebackend.mission.domain.entity.WeeklyMission;
+import org.example.seasontonebackend.mission.domain.repository.UserMissionResponseRepository;
+import org.example.seasontonebackend.mission.domain.repository.WeeklyMissionRepository;
+import org.example.seasontonebackend.mission.dto.MissionRequestDTO;
+import org.example.seasontonebackend.mission.dto.MissionResponseDTO;
+import org.example.seasontonebackend.mission.exception.MissionException;
 import org.example.seasontonebackend.member.domain.Member;
 import org.example.seasontonebackend.member.repository.MemberRepository;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class MissionService {
     private final WeeklyMissionRepository missionRepository;
     private final UserMissionResponseRepository responseRepository;
     private final MemberRepository memberRepository;
-    private final MissionConverter diagnosisConverter;
+    private final MissionConverter missionConverter;
 
     // 현재 활성 미션 조회
     public MissionResponseDTO.CurrentMission getCurrentMission(Long memberId) {
@@ -35,7 +35,7 @@ public class MissionService {
         Integer participationCount = missionRepository.countParticipantsByMissionId(mission.getMissionId());
         Boolean userParticipated = responseRepository.existsByMemberIdAndMissionId(memberId, mission.getMissionId());
 
-        return diagnosisConverter.toCurrentMissionDto(mission, participationCount, userParticipated);
+        return missionConverter.toCurrentMissionDto(mission, participationCount, userParticipated);
     }
 
     // 미션 참여하기
@@ -89,6 +89,6 @@ public class MissionService {
             throw new MissionException("참여하지 않은 미션입니다.");
         }
 
-        return diagnosisConverter.toMissionResultDto(mission, userScore);
+        return missionConverter.toMissionResultDto(mission, userScore);
     }
 }

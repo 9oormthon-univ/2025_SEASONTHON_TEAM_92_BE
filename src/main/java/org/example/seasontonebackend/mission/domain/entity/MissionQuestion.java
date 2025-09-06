@@ -1,4 +1,4 @@
-package org.example.seasontonebackend.Mission.domain.entity;
+package org.example.seasontonebackend.mission.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,4 +31,29 @@ public class MissionQuestion {
 
     @Column(nullable = false)
     private Integer orderNumber;
+
+    // Lombok이 제대로 동작하지 않을 경우를 위한 명시적 getter 메소드들
+    public Long getQuestionId() {
+        return questionId;
+    }
+
+    public WeeklyMission getMission() {
+        return mission;
+    }
+
+    public String getQuestionText() {
+        return questionText;
+    }
+
+    public String getQuestionType() {
+        return questionType;
+    }
+
+    public String getOptions() {
+        return options;
+    }
+
+    public Integer getOrderNumber() {
+        return orderNumber;
+    }
 }
