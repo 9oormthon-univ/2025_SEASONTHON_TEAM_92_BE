@@ -55,7 +55,7 @@ public class DisputeAgencyController {
             log.error("분쟁해결기관 추천 실패 - 분쟁유형: {}, 사용자: {}, 오류: {}",
                     disputeType, member.getEmail(), e.getMessage());
             return ResponseEntity.badRequest()
-                    .body(ㅊ("기관 추천 중 오류가 발생했습니다."));
+                    .body(DisputeAgencyResponseDTO.ApiResponse.error("기관 추천 중 오류가 발생했습니다."));
         }
     }
 }
