@@ -1,11 +1,11 @@
-package org.example.seasontonebackend.Mission.converter;
+package org.example.seasontonebackend.mission.converter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.seasontonebackend.Mission.domain.entity.MissionQuestion;
-import org.example.seasontonebackend.Mission.domain.entity.WeeklyMission;
-import org.example.seasontonebackend.Mission.dto.MissionResponseDTO;
+import org.example.seasontonebackend.mission.domain.entity.MissionQuestion;
+import org.example.seasontonebackend.mission.domain.entity.WeeklyMission;
+import org.example.seasontonebackend.mission.dto.MissionResponseDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -66,6 +66,43 @@ public class MissionConverter {
                 .buildingComparison(buildingComparison)
                 .neighborhoodComparison(neighborhoodComparison)
                 .insights(insights)
+                .build();
+    }
+
+    // 미션 목록 조회용
+    public List<MissionResponseDTO.MissionSummary> toMissionSummaryList(List<WeeklyMission> missions) {
+        return missions.stream()
+                .map(this::toMissionSummaryDto)
+                .collect(Collectors.toList());
+    }
+
+    public MissionResponseDTO.MissionSummary toMissionSummaryDto(WeeklyMission mission) {
+        return MissionResponseDTO.MissionSummary.builder()
+                .missionId(mission.getMissionId())
+                .category(mission.getCategory())
+                .title(mission.getTitle())
+                .startDate(mission.getStartDate())
+                .endDate(mission.getEndDate())
+                .isActive(mission.getIsActive())
+                .build();
+    }
+
+    // 미션 상세 조회용
+    public MissionResponseDTO.MissionDetail toMissionDetailDto(WeeklyMission mission) {
+        List<MissionResponseDTO.MissionQuestion> questionDtos = mission.getQuestions().stream()
+                .map(this::toMissionQuestionDto)
+                .collect(Collectors.toList());
+
+        return MissionResponseDTO.MissionDetail.builder()
+                .missionId(mission.getMissionId())
+                .category(mission.getCategory())
+                .title(mission.getTitle())
+                .description(mission.getDescription())
+                .startDate(mission.getStartDate())
+                .endDate(mission.getEndDate())
+                .isActive(mission.getIsActive())
+                .questions(questionDtos)
+                .createdAt(mission.getCreatedAt())
                 .build();
     }
 

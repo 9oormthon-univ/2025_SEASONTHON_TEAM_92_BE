@@ -1,4 +1,4 @@
-package org.example.seasontonebackend.Mission.exception;
+package org.example.seasontonebackend.mission.exception;
 
 public class MissionException extends RuntimeException {
 

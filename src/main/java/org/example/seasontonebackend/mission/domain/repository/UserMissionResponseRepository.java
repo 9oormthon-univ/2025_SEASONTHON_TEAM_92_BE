@@ -1,6 +1,6 @@
-package org.example.seasontonebackend.Mission.domain.repository;
+package org.example.seasontonebackend.mission.domain.repository;
 
-import org.example.seasontonebackend.Mission.domain.entity.UserMissionResponse;
+import org.example.seasontonebackend.mission.domain.entity.UserMissionResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
