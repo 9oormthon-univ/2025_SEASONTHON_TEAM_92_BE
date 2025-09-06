@@ -32,9 +32,9 @@ public class Report {
     @Column(name = "step_1")
     private String step1;
 
-    @Column(name = "step_2")
-    private String step2;
+//    @Column(name = "step_2")
+//    private String step2;
 
-    @Column(name = "member_id")
-    private Long memberId;
+//    @Column(name = "member_id")
+//    private Long memberId;
 }
