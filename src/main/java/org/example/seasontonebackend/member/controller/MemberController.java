@@ -5,9 +5,11 @@ package org.example.seasontonebackend.member.controller;
 import org.example.seasontonebackend.member.auth.JwtTokenProvider;
 import org.example.seasontonebackend.member.domain.Member;
 import org.example.seasontonebackend.member.dto.MemberCreateDto;
+import org.example.seasontonebackend.member.dto.MemberDongBuildingRequestDto;
 import org.example.seasontonebackend.member.dto.MemberLoginDto;
 import org.example.seasontonebackend.member.dto.MemberProfileDto;
 import org.example.seasontonebackend.member.service.MemberService;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -53,6 +55,12 @@ public class MemberController {
         return new ResponseEntity<>(memberProfileDto, HttpStatus.OK);
     }
 
+    @PostMapping("/profile/setting")
+    public ResponseEntity<?> addMemberDongBuilding(@RequestBody MemberDongBuildingRequestDto memberDongBuildingRequestDto, @AuthenticationPrincipal Member member) {
+        memberService.setMemberDongBuilding(memberDongBuildingRequestDto, member.getId());
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 
 
 }

@@ -3,6 +3,7 @@ package org.example.seasontonebackend.member.service;
 
 import org.example.seasontonebackend.member.domain.Member;
 import org.example.seasontonebackend.member.dto.MemberCreateDto;
+import org.example.seasontonebackend.member.dto.MemberDongBuildingRequestDto;
 import org.example.seasontonebackend.member.dto.MemberLoginDto;
 import org.example.seasontonebackend.member.dto.MemberProfileDto;
 import org.example.seasontonebackend.member.repository.MemberRepository;
@@ -60,11 +61,35 @@ public class MemberService {
 
 
     public MemberProfileDto getMemberProfile(Member member) {
-        MemberProfileDto memberProfileDto = MemberProfileDto.builder()
+
+        return MemberProfileDto.builder()
                 .profileName(member.getName())
                 .profileEmail(member.getEmail())
+                .profileBuilding(member.getBuilding())
+                .profileDong(member.getDong())
                 .build();
+    }
 
-        return memberProfileDto;
+    public void setMemberDongBuilding(MemberDongBuildingRequestDto memberDongBuildingRequestDto, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NullPointerException("존재하지 않는 유저입니다"));
+
+
+        member.setBuilding(memberDongBuildingRequestDto.getBuilding());
+        member.setDong(memberDongBuildingRequestDto.getDong());
+        member.setDetailAddress(memberDongBuildingRequestDto.getDetailAddress());
+        member.setBuildingType(memberDongBuildingRequestDto.getBuildingType());
+        member.setContractType(memberDongBuildingRequestDto.getContractType());
+        member.setSecurity(memberDongBuildingRequestDto.getSecurity());
+
+        System.out.println(memberId);
+        System.out.println(member.getDong());
+        System.out.println(member.getDetailAddress());
+        System.out.println(member.getBuilding());
+        System.out.println(member.getContractType());
+        System.out.println(member.getSecurity());
+
+        memberRepository.save(member);
+
     }
 }
