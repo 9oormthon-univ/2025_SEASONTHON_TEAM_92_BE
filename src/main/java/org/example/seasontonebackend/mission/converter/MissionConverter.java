@@ -1,115 +1,132 @@
 package org.example.seasontonebackend.mission.converter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.example.seasontonebackend.mission.domain.entity.MissionQuestion;
+import org.example.seasontonebackend.mission.domain.entity.WeeklyMission;
+import org.example.seasontonebackend.mission.dto.MissionResponseDTO;
 import org.springframework.stereotype.Component;
 
-import org.example.seasontonebackend.mission.domain.entity.*;
-import org.example.seasontonebackend.mission.domain.repository.MissionParticipationRepository;
-import org.example.seasontonebackend.mission.dto.*;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class MissionConverter {
 
-    public MissionResponseDTO toResponseDTO(Mission mission, Long memberId) {
-        Boolean hasParticipated = null;
-        if (memberId != null) {
-            hasParticipated = participationRepository.existsByMemberIdAndMissionId(memberId, mission.getId());
-        }
+    private final ObjectMapper objectMapper;
 
-        return MissionResponseDTO.builder()
-                .missionId(mission.getId())
-                .title(mission.getTitle())
+    public MissionResponseDTO.CurrentMission toCurrentMissionDto(WeeklyMission mission, Integer participationCount, Boolean userParticipated) {
+        List<MissionResponseDTO.MissionQuestion> questionDtos = mission.getQuestions().stream()
+                .map(this::toMissionQuestionDto)
+                .collect(Collectors.toList());
+
+        return MissionResponseDTO.CurrentMission.builder()
+                .missionId(mission.getMissionId())
                 .category(mission.getCategory())
-                .isActive(mission.getIsActive())
-                .expiresAt(mission.getExpiresAt())
-                .questions(mission.getQuestions())
-                .hasParticipated(hasParticipated)
-                .build();
-    }
-
-    private final MissionParticipationRepository participationRepository;
-
-    public MissionResultResponseDTO toResultResponseDTO(Mission mission, MissionParticipationRepository participationRepository) {
-        Integer totalParticipants = participationRepository.countParticipantsByMissionId(mission.getId());
-        List<MissionParticipation> participations = participationRepository.findByMissionId(mission.getId());
-
-        // JSON에서 questions 추출
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> questionsList = (List<Map<String, Object>>) mission.getQuestions().get("questions");
-
-        List<MissionResultResponseDTO.QuestionResultDTO> results = questionsList.stream()
-                .map(questionMap -> buildQuestionResult(questionMap, participations))
-                .collect(Collectors.toList());
-
-        return MissionResultResponseDTO.builder()
-                .missionId(mission.getId())
                 .title(mission.getTitle())
-                .totalParticipants(totalParticipants)
-                .questions(mission.getQuestions())
-                .results(results)
+                .description(mission.getDescription())
+                .startDate(mission.getStartDate())
+                .endDate(mission.getEndDate())
+                .questions(questionDtos)
+                .participationCount(participationCount)
+                .userParticipated(userParticipated)
                 .build();
     }
 
-    @SuppressWarnings("unchecked")
-    private MissionResultResponseDTO.QuestionResultDTO buildQuestionResult(
-            Map<String, Object> questionMap,
-            List<MissionParticipation> participations) {
+    public MissionResponseDTO.MissionResult toMissionResultDto(WeeklyMission mission, Integer userScore) {
+        // 임시 데이터로 비교 정보 생성 (나중에 실제 계산으로 교체)
+        MissionResponseDTO.ComparisonData buildingComparison = MissionResponseDTO.ComparisonData.builder()
+                .average(6.2)
+                .userRank(3)
+                .totalParticipants(12)
+                .comparisonText("우리 건물 평균보다 만족도가 높습니다")
+                .build();
 
-        Integer questionId = (Integer) questionMap.get("id");
-        String questionText = (String) questionMap.get("text");
-        List<Map<String, Object>> optionsList = (List<Map<String, Object>>) questionMap.get("options");
+        MissionResponseDTO.ComparisonData neighborhoodComparison = MissionResponseDTO.ComparisonData.builder()
+                .average(5.8)
+                .userRank(8)
+                .totalParticipants(45)
+                .comparisonText("우리 동네 평균보다 만족도가 높습니다")
+                .build();
 
-        // 이 질문에 대한 모든 답변 수집
-        List<Integer> scores = new ArrayList<>();
-        Map<Integer, Integer> optionVoteCounts = new HashMap<>();
+        // 인사이트 생성
+        List<String> insights = List.of(
+                "우리 건물은 " + mission.getCategory() + " 환경이 만족스러운 편입니다",
+                "87%의 참가자가 " + mission.getCategory() + "에 만족하고 있습니다"
+        );
 
-        for (MissionParticipation participation : participations) {
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> answers = (List<Map<String, Object>>) participation.getAnswers().get("answers");
+        return MissionResponseDTO.MissionResult.builder()
+                .userScore(userScore)
+                .maxScore(10) // 최대 점수 (질문 2개 * 5점)
+                .category(mission.getCategory())
+                .buildingComparison(buildingComparison)
+                .neighborhoodComparison(neighborhoodComparison)
+                .insights(insights)
+                .build();
+    }
 
-            for (Map<String, Object> answer : answers) {
-                Integer answerQuestionId = (Integer) answer.get("questionId");
-                if (questionId.equals(answerQuestionId)) {
-                    Integer optionId = (Integer) answer.get("optionId");
-                    Integer score = (Integer) answer.get("score");
+    // 미션 목록 조회용
+    public List<MissionResponseDTO.MissionSummary> toMissionSummaryList(List<WeeklyMission> missions) {
+        return missions.stream()
+                .map(this::toMissionSummaryDto)
+                .collect(Collectors.toList());
+    }
 
-                    scores.add(score);
-                    optionVoteCounts.put(optionId, optionVoteCounts.getOrDefault(optionId, 0) + 1);
-                }
-            }
-        }
+    public MissionResponseDTO.MissionSummary toMissionSummaryDto(WeeklyMission mission) {
+        return MissionResponseDTO.MissionSummary.builder()
+                .missionId(mission.getMissionId())
+                .category(mission.getCategory())
+                .title(mission.getTitle())
+                .startDate(mission.getStartDate())
+                .endDate(mission.getEndDate())
+                .isActive(mission.getIsActive())
+                .build();
+    }
 
-        // 평균 점수 계산
-        Double averageScore = scores.isEmpty() ? 0.0 :
-                scores.stream().mapToInt(Integer::intValue).average().orElse(0.0);
-
-        // 옵션별 결과 생성
-        List<MissionResultResponseDTO.OptionResultDTO> optionResults = optionsList.stream()
-                .map(optionMap -> {
-                    Integer optionId = (Integer) optionMap.get("id");
-                    String optionText = (String) optionMap.get("text");
-                    Integer voteCount = optionVoteCounts.getOrDefault(optionId, 0);
-                    Double percentage = participations.isEmpty() ? 0.0 :
-                            (voteCount * 100.0) / participations.size();
-
-                    return MissionResultResponseDTO.OptionResultDTO.builder()
-                            .optionId(optionId)
-                            .optionText(optionText)
-                            .voteCount(voteCount)
-                            .percentage(percentage)
-                            .build();
-                })
+    // 미션 상세 조회용
+    public MissionResponseDTO.MissionDetail toMissionDetailDto(WeeklyMission mission) {
+        List<MissionResponseDTO.MissionQuestion> questionDtos = mission.getQuestions().stream()
+                .map(this::toMissionQuestionDto)
                 .collect(Collectors.toList());
 
-        return MissionResultResponseDTO.QuestionResultDTO.builder()
-                .questionId(questionId)
-                .questionText(questionText)
-                .averageScore(averageScore)
-                .optionResults(optionResults)
+        return MissionResponseDTO.MissionDetail.builder()
+                .missionId(mission.getMissionId())
+                .category(mission.getCategory())
+                .title(mission.getTitle())
+                .description(mission.getDescription())
+                .startDate(mission.getStartDate())
+                .endDate(mission.getEndDate())
+                .isActive(mission.getIsActive())
+                .questions(questionDtos)
+                .createdAt(mission.getCreatedAt())
                 .build();
+    }
+
+    private MissionResponseDTO.MissionQuestion toMissionQuestionDto(MissionQuestion question) {
+        try {
+            List<String> options = objectMapper.readValue(question.getOptions(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
+
+            return MissionResponseDTO.MissionQuestion.builder()
+                    .questionId(question.getQuestionId())
+                    .questionText(question.getQuestionText())
+                    .questionType(question.getQuestionType())
+                    .options(options)
+                    .orderNumber(question.getOrderNumber())
+                    .build();
+        } catch (Exception e) {
+            log.error("JSON 파싱 오류", e);
+            return MissionResponseDTO.MissionQuestion.builder()
+                    .questionId(question.getQuestionId())
+                    .questionText(question.getQuestionText())
+                    .questionType(question.getQuestionType())
+                    .options(new ArrayList<>())
+                    .orderNumber(question.getOrderNumber())
+                    .build();
+        }
     }
 }

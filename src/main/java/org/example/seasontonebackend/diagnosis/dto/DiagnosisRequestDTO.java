@@ -1,19 +1,23 @@
 package org.example.seasontonebackend.diagnosis.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import java.util.Map;
+import lombok.*;
+import java.util.List;
 
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class DiagnosisRequestDTO {
-    private Map<String, Integer> scores; // 카테고리 -> 1-5점
+    private List<Response> responses;
 
-    public Integer getTotalScore() {
-        return scores.values().stream()
-                .mapToInt(Integer::intValue)
-                .sum();
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class Response {
+        private Long questionId;
+        private String score;
     }
 }
