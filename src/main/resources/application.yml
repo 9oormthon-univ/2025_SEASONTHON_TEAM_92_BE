@@ -31,3 +31,10 @@ vworld:
   api:
     key: D2B43972-B325-3DEF-9F41-FF3316FD3AB0
     url: http://api.vworld.kr/req/address
+
+# 정책 API 설정 (해커톤용 - 추후 확장 가능)
+policy:
+  api:
+    cache-duration: 3600  # 1시간 캐시
+    max-results: 50       # 최대 결과 수
+    default-region: "전국" # 기본 지역
