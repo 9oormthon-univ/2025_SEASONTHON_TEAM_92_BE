@@ -37,6 +37,10 @@ dependencies {
 
     // ===== 오피스텔 API 기능을 위한 추가 의존성 =====
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
+
+    // =====  Location 기능을 위한 추가 의존성 =====
+    implementation 'org.json:json:20231013'
+
 }
 
 tasks.named('test') {
