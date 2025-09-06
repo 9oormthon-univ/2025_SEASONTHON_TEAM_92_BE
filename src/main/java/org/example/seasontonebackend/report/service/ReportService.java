@@ -26,8 +26,8 @@ public class ReportService {
 //        String promptPrimaryNegotiationCard2 = "";
         String promptSecondaryNegotiationCard1 =  "사용자의 요구사항: " + reportRequestDto.getReportContent()  + " 프롬프트: 당신은 세입자용 참고용 제안서를 작성하는 AI입니다. 이 서비스는 세입자가 집주인에게 어떻게 요청할 수 있을지 미리 준비할 수 있도록 돕는 플랫폼입니다. 사용자의 요구사항만 기반으로 작성하며, 절대 지어내지 마세요. 작성 톤은 집주인에게 이렇게 제안하면 어떨까요? 형태로 작성하고 시작해야해. 무조건 그래야 합니다 무조건 제발요 부탁 드릴게요. 시설 수리 내용을 포함해야해. 하자 수리 요청만 작성합니다. 서두에 이 서비스에서 제안서를 만드는 이유를 간단히 언급은 절대 하면 안됩니다, 수리 요청을 구체적으로 작성하며, 마지막에 상호 합의 가능성을 언급합니다. 출력은 반드시 하자 수리 요청 사항만 2줄로 작성하며, AI 역할이나 서비스 안내 문장은 절대 포함하지 마세요, 줄넘김 절대 금지야 하면 죽어 제발 하지마 /n 같은거 쓰지마.";
 //        String promptSecondaryNegotiationCard2 = "";
-        String promptStep1 = promptPrimaryNegotiationCard + " 이 글의 핵심이 되는 단 하나의 단어만 출력해 다른 어떤 말도 하지마 무조건 핵심이 되는 단어 하나만 출력해";
-        String promptStep2 = promptSecondaryNegotiationCard1 + " 이 글의 핵심이 되는 단 하나의 단어만 출력해 다른 어떤 말도 하지마 무조건 핵심이 되는 단어 하나만 출력해";
+        String promptStep1 = promptPrimaryNegotiationCard + " 이 글의 핵심이 되는 단 하나의 단어만 출력해 다른 어떤 말도 하지마 무조건 핵심이 되는 단어 하나만 출력해 제발 문장으로 출력으로 하지마 제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발 한 단어 제발 한 단어만 아무 잡소리하지말고";
+        String promptStep2 = promptSecondaryNegotiationCard1 + " 이 글의 핵심이 되는 단 하나의 단어만 출력해 다른 어떤 말도 하지마 무조건 핵심이 되는 단어 하나만 출력해 제발 문장으로 출력으로 하지마 제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발제발 한 단어 제발 한 단어만 아무 잡소리하지말고";
 
         Report report = Report.builder()
                 .primaryNegotiationCard(ai.getGeminiResponse(promptPrimaryNegotiationCard))
