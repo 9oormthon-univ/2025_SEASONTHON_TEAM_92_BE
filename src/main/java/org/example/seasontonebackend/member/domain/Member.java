@@ -17,6 +17,7 @@ import java.util.Collections;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 public class Member implements UserDetails {
 
     @Id
@@ -35,6 +36,17 @@ public class Member implements UserDetails {
     private Role role = Role.User; // 권한
 
     private String building;
+
+    @Column(name = "detail_address")
+    private String detailAddress;
+
+    @Column(name = "building_type")
+    private String buildingType;
+
+    @Column(name = "contract_type;")
+    private String contractType;
+
+    private Long security; // 보증금
 
     private String dong;
 
