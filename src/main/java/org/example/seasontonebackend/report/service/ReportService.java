@@ -49,9 +49,9 @@ public class ReportService {
                 .orElseThrow(() -> new NullPointerException("존재하지 않는 리포트입니다!"));
 
         ReportResponseDto reportResponseDto = ReportResponseDto.builder()
-                .primaryNegotiationCard1(report.getPrimaryNegotiationCard())
+                .primaryNegotiationCard(report.getPrimaryNegotiationCard())
 //                .primaryNegotiationCard2(report.getPrimaryNegotiationCard())
-                .secondaryNegotiationCard1(report.getSecondaryNegotiationCard())
+                .secondaryNegotiationCard(report.getSecondaryNegotiationCard())
 //                .secondaryNegotiationCard2(report.getSecondaryNegotiationCard2())
                 .step1(report.getStep1())
                 .step2(report.getStep2())
