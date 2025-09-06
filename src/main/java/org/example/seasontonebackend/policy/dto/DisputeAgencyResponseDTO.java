@@ -43,7 +43,7 @@ public class DisputeAgencyResponseDTO {
             return new ApiResponse<>(true, data, message);
         }
 
-        public static <T> ApiResponse<T> error(T data, String message) {
+        public static <T> ApiResponse<T> error(String message) {
             return new ApiResponse<>(false, null, message);
         }
     }
