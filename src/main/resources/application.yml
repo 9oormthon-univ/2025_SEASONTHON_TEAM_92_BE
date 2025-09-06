@@ -25,3 +25,9 @@ officetel:
       max-rows: 100
       months-to-fetch: 3
       timeout: 10s
+
+# VWorld Geocoding API 설정 (GPS 좌표 -> 주소 변환)
+vworld:
+  api:
+    key: D2B43972-B325-3DEF-9F41-FF3316FD3AB0
+    url: http://api.vworld.kr/req/address
