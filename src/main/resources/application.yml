@@ -6,7 +6,6 @@ spring:
     password: 1234
   jpa:
     database: mysql
-    #    InnoDB??
     database-platform: org.hibernate.dialect.MySQL8Dialect
     generate-ddl: true
     hibernate:
@@ -14,7 +13,15 @@ spring:
     show_sql: true
 
 jwt:
-  #   32?? ?? ???? ??? : oauthserversecretaccesstokenoauthserversecretaccesstokenoauthserversecretaccesstoken
   secret: b2F1dGhzZXJ2ZXJzZWNyZXRhY2Nlc3N0b2tlbm9hdXRoc2VydmVyc2VjcmV0YWNjZXNzdG9rZW5vYXV0aHNlcnZlcnNlY3JldGFjY2Vzc3Rva2Vu
-  expiration: 3000 #???
+  expiration: 3000
 
+# 오피스텔 API 설정
+officetel:
+  api:
+    service-key: 59afac38869bae8eb4bf96349cc3f88340e584d290b52c74a600c4053b856212
+    base-url: https://apis.data.go.kr/1613000/RTMSDataSvcOffiRent/getRTMSDataSvcOffiRent
+    request:
+      max-rows: 100
+      months-to-fetch: 3
+      timeout: 10s
