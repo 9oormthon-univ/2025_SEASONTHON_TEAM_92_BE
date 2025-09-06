@@ -10,6 +10,6 @@ import lombok.Setter;
 public class ReportResponseDto {
     private String primaryNegotiationCard;
     private String secondaryNegotiationCard;
-    private String step1;
-    private String step2;
+//    private String step1;
+//    private String step2;
 }
