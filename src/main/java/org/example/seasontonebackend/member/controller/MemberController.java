@@ -52,10 +52,6 @@ public class MemberController {
     public ResponseEntity<?> memberProfile(@AuthenticationPrincipal Member member) {
         MemberProfileDto memberProfileDto = memberService.getMemberProfile(member);
         return new ResponseEntity<>(memberProfileDto, HttpStatus.OK);
-
-        if (member.getRole() == Role.Admin) {
-            throw new IllegalStateException();
-        }
     }
 
 
