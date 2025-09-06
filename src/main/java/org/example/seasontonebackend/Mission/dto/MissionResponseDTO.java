@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.LocalDate;
 import java.util.List;
 
-public class DiagnosisResponseDTO {
+public class MissionResponseDTO {
 
     @Getter
     @Setter
