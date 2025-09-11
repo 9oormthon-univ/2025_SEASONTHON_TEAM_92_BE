@@ -31,4 +31,14 @@ public class ReportController {
 
         return new ResponseEntity<>(reportResponseDto, HttpStatus.OK);
     }
+
+    @GetMapping("/report/comprehensive")
+    public ResponseEntity<?> getComprehensiveReport(@AuthenticationPrincipal Member member) {
+        try {
+            ReportResponseDto reportResponseDto = reportService.getComprehensiveReport(member);
+            return new ResponseEntity<>(reportResponseDto, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("리포트 생성 중 오류가 발생했습니다: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

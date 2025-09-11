@@ -2,6 +2,8 @@ package org.example.seasontonebackend.member.config;
 
 
 import org.example.seasontonebackend.member.auth.JwtTokenFilter;
+import org.example.seasontonebackend.member.repository.MemberRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,12 +20,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
 @Configuration
-
 public class SecurityConfig {
-    private final JwtTokenFilter jwtTokenFilter;
 
-    public SecurityConfig(JwtTokenFilter jwtTokenFilter) {
-        this.jwtTokenFilter = jwtTokenFilter;
+    private final MemberRepository memberRepository;
+
+    @Value("${jwt.secret}")
+    private String secretKey;
+
+    // JwtTokenFilter 대신, 필터가 필요로 하는 의존성을 직접 주입받음
+    public SecurityConfig(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
     }
 
     @Bean
@@ -34,12 +40,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain myfilter (HttpSecurity httpSecurity) throws Exception {
+        // 필터를 직접 생성하여 사용
+        JwtTokenFilter jwtTokenFilter = new JwtTokenFilter(memberRepository, secretKey);
+
         return httpSecurity
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic((AbstractHttpConfigurer::disable))
                 .sessionManagement(s->s.sessionCreationPolicy((SessionCreationPolicy.STATELESS)))
-                .authorizeHttpRequests(a->a.requestMatchers("/ping", "/member/create", "/member/doLogin", "/member/google/doLogin", "/member/kakao/doLogin").permitAll().anyRequest().authenticated())
+                .authorizeHttpRequests(a->a.requestMatchers("/ping", "/member/create", "/member/doLogin", "/member/google/doLogin", "/member/kakao/doLogin", "/h2-console/**").permitAll().anyRequest().authenticated())
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -48,7 +57,6 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource configurationSource(){
         CorsConfiguration configuration = new CorsConfiguration();
-//        configuration.setAllowedOrigins(Arrays.asList("Https://localhost:3000"));
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("*"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
@@ -58,6 +66,4 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
-
 }

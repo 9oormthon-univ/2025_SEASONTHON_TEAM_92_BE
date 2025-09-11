@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.example.seasontonebackend.member.domain.Member;
 
 @Builder
 @Entity
@@ -17,24 +18,11 @@ public class Report {
     @Column(name = "report_id")
     private Long reportId;
 
-    @Column(name = "primary_negotiation_card")
-    private String primaryNegotiationCard;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
 
-//    @Column(name = "primary_negotiation_card_2")
-//    private String primaryNegotiationCard2;
-
-    @Column(name = "secondary_negotiation_card")
-    private String secondaryNegotiationCard;
-
-//    @Column(name = "secondary_negotiation_card_2")
-//    private String secondaryNegotiationCard2;
-
-    @Column(name = "step_1")
-    private String step1;
-
-//    @Column(name = "step_2")
-//    private String step2;
-
-//    @Column(name = "member_id")
-//    private Long memberId;
+    // 리포트 생성 시 사용자가 입력한 텍스트
+    @Column(name = "user_input", columnDefinition = "TEXT")
+    private String userInput;
 }

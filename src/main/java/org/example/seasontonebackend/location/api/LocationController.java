@@ -7,10 +7,10 @@ import org.example.seasontonebackend.location.dto.LocationVerificationRequest;
 import org.example.seasontonebackend.location.dto.LocationVerificationResponse;
 import org.example.seasontonebackend.location.dto.AddressPreviewResponse;
 import org.example.seasontonebackend.location.exception.LocationException;
+import org.example.seasontonebackend.member.domain.Member;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -37,26 +37,15 @@ public class LocationController {
      * userId는 JWT 토큰에서 자동 추출
      */
     @PostMapping("/verify")
-    public ResponseEntity<Map<String, Object>> verifyLocation(@RequestBody LocationVerificationRequest request) {
+    public ResponseEntity<Map<String, Object>> verifyLocation(@RequestBody LocationVerificationRequest request, @AuthenticationPrincipal Member member) {
         log.info("🔥🔥🔥 LocationController.verifyLocation 호출됨!");
         log.info("📥 받은 데이터: {}", request);
 
         try {
-            // JWT 토큰에서 사용자 ID 추출
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String userId = authentication.getName(); // 또는 토큰에서 추출하는 다른 방법
-
-            log.info("🔐 토큰에서 추출된 사용자 ID: {}", userId);
+            // @AuthenticationPrincipal을 통해 Member 객체를 직접 받으므로, 별도 추출 로직 불필요
+            log.info("🔐 인증된 사용자 ID: {}", member.getId());
 
             // 기본 유효성 검증
-            if (userId == null || userId.trim().isEmpty()) {
-                Map<String, Object> errorResult = new HashMap<>();
-                errorResult.put("success", false);
-                errorResult.put("data", null);
-                errorResult.put("message", "인증되지 않은 사용자입니다.");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResult);
-            }
-
             if (request.getLatitude() == null || request.getLongitude() == null) {
                 Map<String, Object> errorResult = new HashMap<>();
                 errorResult.put("success", false);
@@ -73,14 +62,8 @@ public class LocationController {
                 return ResponseEntity.badRequest().body(errorResult);
             }
 
-            // userId를 포함한 완전한 요청 객체 생성
-            LocationVerificationRequest fullRequest = LocationVerificationRequest.builder()
-                    .latitude(request.getLatitude())
-                    .longitude(request.getLongitude())
-                    .buildingName(request.getBuildingName())
-                    .build();
-
-            LocationVerificationResponse response = locationService.verifyLocation(fullRequest, userId);
+            // LocationService에 Member 객체를 직접 전달
+            LocationVerificationResponse response = locationService.verifyLocation(request, member);
 
             Map<String, Object> result = new HashMap<>();
             result.put("success", true);

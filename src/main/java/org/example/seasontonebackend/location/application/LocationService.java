@@ -6,7 +6,10 @@ import org.example.seasontonebackend.location.dto.LocationVerificationRequest;
 import org.example.seasontonebackend.location.dto.LocationVerificationResponse;
 import org.example.seasontonebackend.location.dto.AddressPreviewResponse;
 import org.example.seasontonebackend.location.exception.LocationException;
+import org.example.seasontonebackend.member.domain.Member;
+import org.example.seasontonebackend.member.repository.MemberRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 위치 인증 비즈니스 로직 서비스
@@ -17,12 +20,14 @@ import org.springframework.stereotype.Service;
 public class LocationService {
 
     private final GeocodingService geocodingService;
+    private final MemberRepository memberRepository; // MemberRepository 주입
 
     /**
      * GPS 좌표를 이용한 위치 인증
      */
-    public LocationVerificationResponse verifyLocation(LocationVerificationRequest request, String userId) {
-        log.info("🔥 위치 인증 시작 - 사용자 ID: {}", userId);
+    @Transactional // 트랜잭션 추가
+    public LocationVerificationResponse verifyLocation(LocationVerificationRequest request, Member member) {
+        log.info("🔥 위치 인증 시작 - 사용자 ID: {}", member.getId());
         log.info("📍 좌표 - 경도: {}, 위도: {}", request.getLongitude(), request.getLatitude());
         log.info("🏠 건물명: {}", request.getBuildingName());
 
@@ -50,9 +55,13 @@ public class LocationService {
                 throw new LocationException("위치 인증 범위를 벗어났습니다.");
             }
 
-            // 4. 인증 성공 응답 생성
+            // 4. 인증 성공 시 Member 엔티티 업데이트
+            member.setGpsVerified(true);
+            memberRepository.save(member); // 변경사항 저장
+
+            // 5. 인증 성공 응답 생성
             LocationVerificationResponse response = LocationVerificationResponse.builder()
-                    .userId(userId) // 토큰에서 받은 userId 사용
+                    .userId(String.valueOf(member.getId())) // Member ID 사용
                     .address(address)
                     .neighborhood(neighborhood)
                     .buildingName(request.getBuildingName())

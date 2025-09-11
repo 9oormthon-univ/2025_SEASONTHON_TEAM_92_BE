@@ -43,10 +43,18 @@ public class Member implements UserDetails {
     @Column(name = "building_type")
     private String buildingType;
 
-    @Column(name = "contract_type;")
+    @Column(name = "contract_type")
     private String contractType;
 
     private Long security; // 보증금
+
+    private Integer rent; // 월세
+
+    private Integer maintenanceFee; // 관리비
+
+    private boolean isGpsVerified; // GPS 인증 여부
+
+    private boolean isContractVerified; // 계약서 인증 여부
 
     private String dong;
 
