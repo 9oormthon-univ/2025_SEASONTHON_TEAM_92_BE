@@ -36,15 +36,16 @@ public class MemberService {
                 .email(memberCreateDto.getEmail())
                 .name(memberCreateDto.getName())
                 .password(passwordEncoder.encode(memberCreateDto.getPassword()))
-                .dong(memberCreateDto.getDong())
-                .building(memberCreateDto.getBuilding())
-                .buildingType(memberCreateDto.getBuildingType())
-                .contractType(memberCreateDto.getContractType())
-                .security(memberCreateDto.getSecurity())
-                .rent(memberCreateDto.getRent())
-                .maintenanceFee(memberCreateDto.getMaintenanceFee())
-                .isGpsVerified(memberCreateDto.isGpsVerified())
-                .isContractVerified(false) // 계약서 인증은 별도 로직이므로 false로 초기화
+                // 나머지 필드들은 기본값으로 초기화 (나중에 프로필 설정에서 업데이트)
+                .dong(null)
+                .building(null)
+                .buildingType(null)
+                .contractType(null)
+                .security(null)
+                .rent(null)
+                .maintenanceFee(null)
+                .isGpsVerified(false)
+                .isContractVerified(false)
                 .build();
         memberRepository.save(newMember);
         return newMember;
