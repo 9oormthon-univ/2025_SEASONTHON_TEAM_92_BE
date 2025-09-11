@@ -13,6 +13,9 @@ java {
         languageVersion = JavaLanguageVersion.of(17)
     }
 }
+bootJar {
+    archiveFileName = "SeasonToneBackend.jar"
+}
 
 repositories {
     mavenCentral()
