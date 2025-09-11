@@ -1,16 +1,17 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${MYSQL_URL:jdbc:mysql://seasonton-database.ctac6m8qes6b.ap-northeast-2.rds.amazonaws.com/seasonton?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true}
-    username: ${MYSQLUSER:root}
-    password: ${MYSQLPASSWORD:12345678}
+    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
+    username: ${MYSQLUSER}
+    password: ${MYSQLPASSWORD}
   jpa:
     database: mysql
     database-platform: org.hibernate.dialect.MySQL8Dialect
     generate-ddl: true
     hibernate:
       ddl-auto: update
-    show_sql: false  # 프로덕션에서는 SQL 로그 비활성화
+    show_sql: false
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:default}
 
