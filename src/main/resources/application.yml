@@ -1,9 +1,9 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DATABASE_URL:jdbc:mysql://seasonton-database.ctac6m8qes6b.ap-northeast-2.rds.amazonaws.com/seasonton?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true}
-    username: ${MYSQL_USERNAME:root}
-    password: ${MYSQL_PASSWORD:12345678}
+    url: ${MYSQL_URL:jdbc:mysql://seasonton-database.ctac6m8qes6b.ap-northeast-2.rds.amazonaws.com/seasonton?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true}
+    username: ${MYSQLUSER:root}
+    password: ${MYSQLPASSWORD:12345678}
   jpa:
     database: mysql
     database-platform: org.hibernate.dialect.MySQL8Dialect
