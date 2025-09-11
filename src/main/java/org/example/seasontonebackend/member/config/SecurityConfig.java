@@ -48,7 +48,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic((AbstractHttpConfigurer::disable))
                 .sessionManagement(s->s.sessionCreationPolicy((SessionCreationPolicy.STATELESS)))
-                .authorizeHttpRequests(a->a.requestMatchers("/ping", "/member/create", "/member/doLogin", "/member/google/doLogin", "/member/kakao/doLogin", "/h2-console/**", "/api/location/preview", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll().anyRequest().authenticated())
+                .authorizeHttpRequests(a->a.requestMatchers("/ping", "/member/create", "/member/doLogin", "/member/google/doLogin", "/member/kakao/doLogin", "/h2-console/**", "/api/location/preview", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/actuator/**").permitAll().anyRequest().authenticated())
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

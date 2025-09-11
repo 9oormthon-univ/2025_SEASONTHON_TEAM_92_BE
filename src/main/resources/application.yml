@@ -44,5 +44,16 @@ policy:
     default-region: "전국" # 기본 지역
 
 server:
+  port: ${PORT:8080}
   tomcat:
     connection-timeout: 0
+
+# Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
