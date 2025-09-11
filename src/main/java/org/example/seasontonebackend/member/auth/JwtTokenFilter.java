@@ -61,10 +61,24 @@ public class JwtTokenFilter extends GenericFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
                 String email = claims.getSubject();
+                log.info("JWT Token parsed - Email: {}", email);
+                log.info("JWT Token claims: {}", claims);
+                
                 Member member = memberRepository.findByEmail(email).orElse(null);
                 if (member != null) {
+                    log.info("Member found: {} (ID: {})", member.getEmail(), member.getId());
                     Authentication memberAuth = new UsernamePasswordAuthenticationToken(member, jwtToken, member.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(memberAuth);
+                    log.info("Authentication set successfully for member: {}", member.getEmail());
+                } else {
+                    // Member not found, clear authentication to prevent null pointer exceptions
+                    SecurityContextHolder.clearContext();
+                    log.warn("Member not found for email: {}. This usually means the user was deleted from the database but the JWT token is still valid.", email);
+                    // Return 401 Unauthorized when member is not found
+                    httpServletResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    httpServletResponse.setContentType("application/json;charset=UTF-8");
+                    httpServletResponse.getWriter().write("{\"success\":false,\"message\":\"사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.\"}");
+                    return;
                 }
             }
             chain.doFilter(request, response);

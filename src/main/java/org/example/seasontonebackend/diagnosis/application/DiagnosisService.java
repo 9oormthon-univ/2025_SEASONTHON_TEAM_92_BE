@@ -78,6 +78,38 @@ public class DiagnosisService {
                 .build();
     }
 
+    @Transactional
+    public DiagnosisSubmissionResponseDTO submitBulkResponses(Member member, List<DiagnosisRequestDTO> requests) {
+        responseRepository.deleteByUserId(member.getId());
+
+        int totalScore = 0;
+        int totalResponses = 0;
+
+        for (DiagnosisRequestDTO request : requests) {
+            for (DiagnosisRequestDTO.Response responseItem : request.getResponses()) {
+                DiagnosisScore score = DiagnosisScore.fromValue(responseItem.getScore());
+
+                DiagnosisResponse response = DiagnosisResponse.builder()
+                        .userId(member.getId())
+                        .questionId(responseItem.getQuestionId())
+                        .score(score)
+                        .createdAt(LocalDateTime.now())
+                        .build();
+
+                responseRepository.save(response);
+                totalScore += score.getIntValue();
+                totalResponses++;
+            }
+        }
+
+        return DiagnosisSubmissionResponseDTO.builder()
+                .totalScore(totalScore)
+                .maxScore(100)
+                .responseCount(totalResponses)
+                .submittedAt(LocalDateTime.now())
+                .build();
+    }
+
     public DiagnosisResultResponseDTO getResult(Member member) {
         List<DiagnosisResponse> responses = responseRepository.findByUserId(member.getId());
 

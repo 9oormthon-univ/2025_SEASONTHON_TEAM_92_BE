@@ -60,6 +60,29 @@ public class DiagnosisController {
         }
     }
 
+    @PostMapping("/responses/bulk")
+    public ResponseEntity<Map<String, Object>> submitBulkResponses(
+            @RequestBody java.util.List<DiagnosisRequestDTO> requests,
+            @AuthenticationPrincipal Member member) {
+        try {
+            // 첫 번째 요청만 사용 (프론트엔드에서 배열로 보내지만 실제로는 하나의 요청)
+            DiagnosisRequestDTO request = requests.get(0);
+            DiagnosisSubmissionResponseDTO data = diagnosisService.submitResponses(member, request);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", data);
+            response.put("message", "진단 응답이 일괄 저장되었습니다.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("진단 응답 일괄 제출 실패 - 사용자: {}, 오류: {}", member.getEmail(), e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+
     @GetMapping("/result")
     public ResponseEntity<Map<String, Object>> getResult(@AuthenticationPrincipal Member member) {
         try {

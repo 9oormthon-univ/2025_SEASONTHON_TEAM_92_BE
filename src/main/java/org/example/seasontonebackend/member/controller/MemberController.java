@@ -73,9 +73,29 @@ public class MemberController {
 
     @PostMapping("/profile/setting")
     public ResponseEntity<?> addMemberDongBuilding(@RequestBody MemberDongBuildingRequestDto memberDongBuildingRequestDto, @AuthenticationPrincipal Member member) {
+        System.out.println("=== Profile Setting Request ===");
+        System.out.println("Member object: " + member);
+        System.out.println("Request data: " + memberDongBuildingRequestDto);
+        
+        if (member == null) {
+            System.out.println("ERROR: Member is null!");
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "인증된 사용자 정보를 찾을 수 없습니다.");
+            return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+        }
+        
+        System.out.println("Member ID: " + member.getId());
+        System.out.println("Member Email: " + member.getEmail());
+        
         memberService.setMemberDongBuilding(memberDongBuildingRequestDto, member.getId());
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        // 성공 응답에 success 필드 포함
+        Map<String, Object> successResponse = new HashMap<>();
+        successResponse.put("success", true);
+        successResponse.put("message", "프로필이 성공적으로 업데이트되었습니다.");
+        
+        return new ResponseEntity<>(successResponse, HttpStatus.OK);
     }
 
 

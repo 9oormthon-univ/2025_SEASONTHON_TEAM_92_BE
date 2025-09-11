@@ -9,6 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 public class ReportController {
     private final ReportService reportService;
@@ -29,16 +32,31 @@ public class ReportController {
     public ResponseEntity<?> getReport(@PathVariable Long reportId) {
         ReportResponseDto reportResponseDto = reportService.getReport(reportId);
 
-        return new ResponseEntity<>(reportResponseDto, HttpStatus.OK);
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("data", reportResponseDto);
+        response.put("message", "리포트를 조회했습니다.");
+        
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/report/comprehensive")
     public ResponseEntity<?> getComprehensiveReport(@AuthenticationPrincipal Member member) {
         try {
             ReportResponseDto reportResponseDto = reportService.getComprehensiveReport(member);
-            return new ResponseEntity<>(reportResponseDto, HttpStatus.OK);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", reportResponseDto);
+            response.put("message", "종합 리포트를 조회했습니다.");
+            
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>("리포트 생성 중 오류가 발생했습니다: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "리포트 생성 중 오류가 발생했습니다: " + e.getMessage());
+            
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

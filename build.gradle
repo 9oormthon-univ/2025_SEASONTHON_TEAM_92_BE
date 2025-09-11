@@ -42,6 +42,9 @@ dependencies {
     // =====  Location 기능을 위한 추가 의존성 =====
     implementation 'org.json:json:20231013'
 
+    // ===== API 명세서를 위한 추가 의존성 =====
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+
 }
 
 tasks.named('test') {
