@@ -218,6 +218,18 @@ public class DiagnosisService {
     }
 
     private String getSubText(int categoryId, int questionOrder) {
-        return "세부 설명 " + categoryId + "-" + questionOrder;
+        String[][] subTexts = {
+                {"매우 조용함~매우 시끄러움", "전혀 안 들림~매우 시끄러움"},
+                {"매우 약함~매우 강함", "매우 늦음~매우 빠름"},
+                {"매우 어두움~매우 밝음", "거의 없음~하루종일"},
+                {"매우 어려움~매우 쉬움", "매우 멀음~매우 가까움"},
+                {"매우 나쁨~매우 좋음", "매우 부담~전혀 부담 없음"},
+                {"매우 나쁨~매우 좋음", "매우 어려움~매우 쉬움"},
+                {"매우 나쁨~매우 좋음", "매우 불안함~매우 안전함"},
+                {"매우 나쁨~매우 좋음", "매우 느림~매우 빠름"},
+                {"매우 부족함~매우 충분함", "매우 불편함~매우 편리함"},
+                {"매우 느림~매우 빠름", "매우 불안정함~매우 안정함"}
+        };
+        return subTexts[categoryId - 1][questionOrder - 1];
     }
 }
