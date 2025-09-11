@@ -34,7 +34,19 @@ public class MemberController {
     @PostMapping("/create")
     public ResponseEntity<?> memberCreate(@RequestBody MemberCreateDto memberCreateDto) {
         Member member = memberService.create(memberCreateDto);
-        return new ResponseEntity<>(member.getId(), HttpStatus.CREATED);
+        
+        // 프론트엔드가 기대하는 형태로 응답 구성
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "회원가입이 완료되었습니다.");
+        response.put("user", Map.of(
+            "id", member.getId(),
+            "email", member.getEmail(),
+            "name", member.getName(),
+            "role", member.getRole().toString()
+        ));
+        
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
 
