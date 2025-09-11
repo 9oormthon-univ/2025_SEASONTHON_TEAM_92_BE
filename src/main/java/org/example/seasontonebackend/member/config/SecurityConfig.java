@@ -57,10 +57,26 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource configurationSource(){
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("*"));
+        
+        // 허용할 도메인들 명시적 추가
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:3000",
+            "http://localhost:3001", 
+            "https://rental-lovat-theta.vercel.app",
+            "https://*.vercel.app"
+        ));
+        
+        // 모든 HTTP 메서드 허용
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        
+        // 모든 헤더 허용
         configuration.setAllowedHeaders(Arrays.asList("*"));
+        
+        // 인증 정보 포함 허용
         configuration.setAllowCredentials(true);
+        
+        // Preflight 요청 캐시 시간 (초)
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

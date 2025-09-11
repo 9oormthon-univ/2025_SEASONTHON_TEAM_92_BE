@@ -1,0 +1,54 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DATABASE_URL:jdbc:mysql://localhost:3306/seasonton?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true}
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:12345678}
+  jpa:
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    show_sql: false  # 프로덕션에서는 SQL 로그 비활성화
+  profiles:
+    active: railway
+
+jwt:
+  secret: ${JWT_SECRET:b2F1dGhzZXJ2ZXJzZWNyZXRhY2Nlc3N0b2tlbm9hdXRoc2VydmVyc2VjcmV0YWNjZXNzdG9rZW5vYXV0aHNlcnZlcnNlY3JldGFjY2Vzc3Rva2Vu}
+  expiration: ${JWT_EXPIRATION:3000}
+
+# 오피스텔 API 설정
+officetel:
+  api:
+    service-key: ${OFFICETEL_API_SERVICE_KEY:59afac38869bae8eb4bf96349cc3f88340e584d290b52c74a600c4053b856212}
+    base-url: https://apis.data.go.kr/1613000/RTMSDataSvcOffiRent/getRTMSDataSvcOffiRent
+    request:
+      max-rows: 100
+      months-to-fetch: 3
+      timeout: 10s
+
+# VWorld Geocoding API 설정 (GPS 좌표 -> 주소 변환)
+vworld:
+  api:
+    key: ${VWORLD_API_KEY:D2B43972-B325-3DEF-9F41-FF3316FD3AB0}
+    url: http://api.vworld.kr/req/address
+
+# 정책 API 설정 (해커톤용 - 추후 확장 가능)
+policy:
+  api:
+    cache-duration: 3600  # 1시간 캐시
+    max-results: 50       # 최대 결과 수
+    default-region: "전국" # 기본 지역
+
+server:
+  port: ${PORT:8080}
+  tomcat:
+    connection-timeout: 0
+
+# 로깅 설정
+logging:
+  level:
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
