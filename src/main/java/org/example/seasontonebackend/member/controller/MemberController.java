@@ -40,10 +40,13 @@ public class MemberController {
         response.put("success", true);
         response.put("message", "회원가입이 완료되었습니다.");
         response.put("user", Map.of(
-            "id", member.getId(),
+            "id", member.getId().toString(),
             "email", member.getEmail(),
-            "name", member.getName(),
-            "role", member.getRole().toString()
+            "nickname", member.getName(), // 프론트엔드는 nickname 필드를 기대함
+            "role", member.getRole().toString().toLowerCase(), // 프론트엔드는 소문자 role을 기대함
+            "profileCompleted", false,
+            "diagnosisCompleted", false,
+            "onboardingCompleted", false
         ));
         
         return new ResponseEntity<>(response, HttpStatus.CREATED);
