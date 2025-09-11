@@ -19,6 +19,8 @@ public class DiagnosisQuestionsResponseDTO {
     public static class Category {
         private Long categoryId;
         private Integer sortOrder;
+        private String title;
+        private String description;
         private List<Question> questions;
     }
 

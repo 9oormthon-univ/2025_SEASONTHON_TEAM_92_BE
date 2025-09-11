@@ -39,6 +39,8 @@ public class DiagnosisService {
             DiagnosisQuestionsResponseDTO.Category category = DiagnosisQuestionsResponseDTO.Category.builder()
                     .categoryId((long) i)
                     .sortOrder(i)
+                    .title(getCategoryTitle(i))
+                    .description(getCategoryDescription(i))
                     .questions(questions)
                     .build();
 
@@ -231,5 +233,29 @@ public class DiagnosisService {
                 {"매우 느림~매우 빠름", "매우 불안정함~매우 안정함"}
         };
         return subTexts[categoryId - 1][questionOrder - 1];
+    }
+
+    private String getCategoryTitle(int categoryId) {
+        String[] titles = {
+            "소음", "수압", "채광", "주차", "난방",
+            "환기", "보안", "관리", "편의성", "인터넷"
+        };
+        return titles[categoryId - 1];
+    }
+
+    private String getCategoryDescription(int categoryId) {
+        String[] descriptions = {
+            "이웃 소음과 외부 소음 정도",
+            "물의 압력과 온수 공급",
+            "자연광과 햇빛 유입",
+            "주차 공간 확보와 접근성",
+            "겨울철 난방 효율과 비용",
+            "실내 공기순환과 습도 조절",
+            "건물 보안시설과 밤시간 안전함",
+            "건물 관리상태와 수리 요청 시 대응 속도",
+            "주변 편의시설과 대중교통 접근성",
+            "인터넷 속도와 WiFi 안정성"
+        };
+        return descriptions[categoryId - 1];
     }
 }
