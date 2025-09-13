@@ -67,8 +67,8 @@ public class ReportService {
         int reliabilityScore = calculateReliabilityScore(
                 neighborhoodMembers.size(), 
                 averageResponseAgeDays, 
-                member.isGpsVerified(), 
-                member.isContractVerified()
+                (member.getGpsVerified() != null && member.getGpsVerified()), 
+                (member.getContractVerified() != null && member.getContractVerified())
         );
 
         ReportResponseDto.ReportHeaderDto header = ReportResponseDto.ReportHeaderDto.builder()
@@ -85,8 +85,8 @@ public class ReportService {
                 .buildingType(member.getBuildingType())
                 .contractType(member.getContractType())
                 .conditions(conditions)
-                .gpsVerified(member.isGpsVerified())
-                .contractVerified(member.isContractVerified())
+                .gpsVerified(member.getGpsVerified() != null && member.getGpsVerified())
+                .contractVerified(member.getContractVerified() != null && member.getContractVerified())
                 .build();
 
         return ReportResponseDto.builder()
@@ -122,8 +122,8 @@ public class ReportService {
         int reliabilityScore = calculateReliabilityScore(
                 neighborhoodMembers.size(), 
                 averageResponseAgeDays, 
-                member.isGpsVerified(), 
-                member.isContractVerified()
+                (member.getGpsVerified() != null && member.getGpsVerified()), 
+                (member.getContractVerified() != null && member.getContractVerified())
         );
 
         ReportResponseDto.ReportHeaderDto header = ReportResponseDto.ReportHeaderDto.builder()
@@ -140,8 +140,8 @@ public class ReportService {
                 .buildingType(member.getBuildingType())
                 .contractType(member.getContractType())
                 .conditions(conditions)
-                .gpsVerified(member.isGpsVerified())
-                .contractVerified(member.isContractVerified())
+                .gpsVerified(member.getGpsVerified() != null && member.getGpsVerified())
+                .contractVerified(member.getContractVerified() != null && member.getContractVerified())
                 .build();
 
         return ReportResponseDto.builder()
