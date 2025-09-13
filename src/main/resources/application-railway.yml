@@ -37,7 +37,7 @@ officetel:
 vworld:
   api:
     key: ${VWORLD_API_KEY:D2B43972-B325-3DEF-9F41-FF3316FD3AB0}
-    url: ${VWORLD_API_URL:https://api.vworld.kr/req/address}
+    url: https://2025-seasonthon-team-92-fe.vercel.app/api/vworld-proxy
     enabled: ${VWORLD_API_ENABLED:true}
 
 # 정책 API 설정 (해커톤용 - 추후 확장 가능)
