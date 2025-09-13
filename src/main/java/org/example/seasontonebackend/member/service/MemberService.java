@@ -1,7 +1,9 @@
 package org.example.seasontonebackend.member.service;
 
 
+import org.example.seasontonebackend.member.auth.JwtTokenProvider;
 import org.example.seasontonebackend.member.domain.Member;
+import org.example.seasontonebackend.member.domain.SocialType;
 import org.example.seasontonebackend.member.dto.MemberCreateDto;
 import org.example.seasontonebackend.member.dto.MemberDongBuildingRequestDto;
 import org.example.seasontonebackend.member.dto.MemberLoginDto;
@@ -18,30 +20,30 @@ import java.util.Optional;
 public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public MemberService(MemberRepository memberRepository, PasswordEncoder passwordEncoder) {
+    public MemberService(MemberRepository memberRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider) {
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     public Member create(MemberCreateDto memberCreateDto) {
         Optional<Member> member = memberRepository.findByEmail(memberCreateDto.getEmail());
         if (member.isPresent()) {
             throw new IllegalStateException("이미 존재하는 이메일입니다.");
-
         }
-
 
         Member newMember = Member.builder()
                 .email(memberCreateDto.getEmail())
                 .name(memberCreateDto.getName())
                 .password(passwordEncoder.encode(memberCreateDto.getPassword()))
                 .build();
-        memberRepository.save(newMember);
-        return newMember;
+
+        return memberRepository.save(newMember);
     }
 
-    public Member login(MemberLoginDto memberLoginDto) {
+    public String login(MemberLoginDto memberLoginDto) {
         Optional<Member> optMember = memberRepository.findByEmail(memberLoginDto.getEmail());
         if (!optMember.isPresent()) {
             throw new IllegalArgumentException("no email found");
@@ -53,26 +55,30 @@ public class MemberService {
             throw new IllegalArgumentException("wrong password");
         }
 
-        return member;
+        String token = jwtTokenProvider.createToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
+
+        return token;
     }
 
 
 
 
 
-    public MemberProfileDto getMemberProfile(Member member) {
+    public MemberProfileDto getMemberProfile(Long memberId) {
 
-        return MemberProfileDto.builder()
-                .profileName(member.getName())
-                .profileEmail(member.getEmail())
-                .profileBuilding(member.getBuilding())
-                .profileDong(member.getDong())
-                .build();
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new NullPointerException("Member not found"));
+
+            return MemberProfileDto.builder()
+                    .profileName(member.getName())
+                    .profileEmail(member.getEmail())
+                    .profileBuilding(member.getBuilding())
+                    .profileDong(member .getDong())
+                    .build();
+
     }
 
     public void setMemberDongBuilding(MemberDongBuildingRequestDto memberDongBuildingRequestDto, Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NullPointerException("존재하지 않는 유저입니다"));
+        Member member = memberRepository.findById(memberId).orElseThrow(() -> new NullPointerException("존재하지 않는 유저입니다"));
 
 
         member.setBuilding(memberDongBuildingRequestDto.getBuilding());
@@ -92,4 +98,13 @@ public class MemberService {
         memberRepository.save(member);
 
     }
-}
+
+
+    public String googleGetToken(Long googleUser) {
+        Member member = memberRepository.findByIdAndSocialType(googleUser, SocialType.GOOGLE).orElseThrow(() -> new NullPointerException("존재하지 않는 유저입니다"));
+        String token = jwtTokenProvider.createToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
+
+        return token;
+        }
+    }
+

@@ -14,6 +14,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -40,11 +41,10 @@ public class MemberController {
 
     @PostMapping("/doLogin")
     public ResponseEntity<?> doLogin(@RequestBody MemberLoginDto memberLoginDto) {
-        Member member = memberService.login(memberLoginDto);
-        String jwtToken = jwtTokenProvider.createToken(member.getId(), member.getEmail(), member.getRole().toString());
+        String jwtToken = memberService.login(memberLoginDto);
 
         Map<String, Object> loginInfo = new HashMap<>();
-        loginInfo.put("id", member.getId());
+//        loginInfo.put("id", member.getId());
         loginInfo.put("token", jwtToken);
         return new ResponseEntity<>(loginInfo, HttpStatus.OK);
     }
@@ -52,7 +52,7 @@ public class MemberController {
 
     @GetMapping("/profile")
     public ResponseEntity<?> memberProfile(@AuthenticationPrincipal Member member) {
-        MemberProfileDto memberProfileDto = memberService.getMemberProfile(member);
+        MemberProfileDto memberProfileDto = memberService.getMemberProfile(member.getId());
         return new ResponseEntity<>(memberProfileDto, HttpStatus.OK);
     }
 
@@ -62,6 +62,34 @@ public class MemberController {
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+
+    @PostMapping("/google/create")
+    public ResponseEntity<?> googleMemberCreate(@RequestParam Long googleUser, @RequestBody MemberDongBuildingRequestDto memberDongBuildingRequestDto) {
+//        String token = memberService.googleMemberCreate(googleUser, memberDongBuildingRequestDto);
+        memberService.setMemberDongBuilding(memberDongBuildingRequestDto, googleUser);
+
+        MemberLoginDto memberLoginDto = new MemberLoginDto();
+
+
+        String jwtToken = memberService.login(memberLoginDto);
+
+        Map<String, Object> loginInfo = new HashMap<>();
+        loginInfo.put("token", jwtToken);
+        return new ResponseEntity<>(loginInfo, HttpStatus.OK);
+    }
+
+
+
+    @GetMapping("/google/token")
+    public ResponseEntity<?> googleLoginGetToken(@RequestParam Long googleUser) {
+        String token = memberService.googleGetToken(googleUser);
+
+        Map<String, Object> loginInfo = new HashMap<>();
+        loginInfo.put("token", token);
+        return new ResponseEntity<>(loginInfo, HttpStatus.OK);
+    }
+
 
 
 }

@@ -35,20 +35,27 @@ public class Member implements UserDetails {
     @Builder.Default
     private Role role = Role.User; // 권한
 
-    private String building;
+    private String building; // 건물이름
 
     @Column(name = "detail_address")
-    private String detailAddress;
+    private String detailAddress; // 상세주소
 
     @Column(name = "building_type")
-    private String buildingType;
+    private String buildingType; // 빌라, 아파트 원룸
 
-    @Column(name = "contract_type;")
-    private String contractType;
+    @Column(name = "contract_type")
+    private String contractType; // 계약 종류
 
     private Long security; // 보증금
 
-    private String dong;
+    private String dong; // 기본 주소, ~~시 ~~동
+
+    @Column(name = "provider_id")
+    private String providerId; // 구글 로그인 고유 식별 id
+
+    @Column(name = "social_type")
+    @Enumerated(EnumType.STRING)
+    private SocialType socialType; // 소셜로그인 종류
 
     // ===== UserDetails 구현 =====
     @Override
@@ -58,7 +65,7 @@ public class Member implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email; // 로그인 ID로 email 사용
+        return name; // 로그인 ID로 email 사용
     }
 
     @Override

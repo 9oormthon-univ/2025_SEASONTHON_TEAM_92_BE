@@ -2,6 +2,7 @@ package org.example.seasontonebackend.member.config;
 
 
 import org.example.seasontonebackend.member.auth.JwtTokenFilter;
+import org.example.seasontonebackend.member.service.GoogleService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -21,9 +22,12 @@ import java.util.Arrays;
 
 public class SecurityConfig {
     private final JwtTokenFilter jwtTokenFilter;
+    private final GoogleService googleService;
 
-    public SecurityConfig(JwtTokenFilter jwtTokenFilter) {
+
+    public SecurityConfig(JwtTokenFilter jwtTokenFilter, GoogleService googleService) {
         this.jwtTokenFilter = jwtTokenFilter;
+        this.googleService = googleService;
     }
 
     @Bean
@@ -33,14 +37,15 @@ public class SecurityConfig {
 
 
     @Bean
-    public SecurityFilterChain myfilter (HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain filterChain (HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic((AbstractHttpConfigurer::disable))
                 .sessionManagement(s->s.sessionCreationPolicy((SessionCreationPolicy.STATELESS)))
-                .authorizeHttpRequests(a->a.requestMatchers("/ping", "/member/create", "/member/doLogin", "/member/google/doLogin", "/member/kakao/doLogin").permitAll().anyRequest().authenticated())
+                .authorizeHttpRequests(a->a.requestMatchers("/ping", "/member/create", "/member/doLogin", "/member/google/**",  "/oauth2/authorization/google", "/login/oauth2/code/google").permitAll().anyRequest().authenticated())
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
+                .oauth2Login(o -> o.successHandler(googleService))
                 .build();
     }
 
