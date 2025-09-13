@@ -40,6 +40,8 @@ public class GeocodingService {
                     "%s?service=address&request=GetAddress&version=2.0&crs=epsg:4326&point=%f,%f&format=json&type=both&zipcode=false&simple=false&key=%s",
                     apiUrl, longitude, latitude, apiKey
             );
+            
+            log.info("🌐 VWorld API 요청 URL: {}", url);
 
             String response = restTemplate.getForObject(url, String.class);
             log.info("VWorld API 응답: {}", response);
@@ -102,7 +104,23 @@ public class GeocodingService {
             return getFallbackAddress(longitude, latitude);
 
         } catch (Exception e) {
-            log.error("VWorld API 호출 실패", e);
+            log.error("❌ VWorld API 호출 실패 - 좌표: ({}, {})", longitude, latitude, e);
+            log.error("예외 타입: {}", e.getClass().getSimpleName());
+            log.error("예외 메시지: {}", e.getMessage());
+            if (e.getCause() != null) {
+                log.error("원인 예외: {}", e.getCause().getMessage());
+            }
+            
+            // 네트워크 연결 테스트
+            try {
+                log.info("🔍 네트워크 연결 테스트 시작...");
+                String testUrl = "http://api.vworld.kr/req/address";
+                String testResponse = restTemplate.getForObject(testUrl, String.class);
+                log.info("✅ 기본 연결 테스트 성공: {}", testResponse != null ? "응답 받음" : "응답 없음");
+            } catch (Exception networkException) {
+                log.error("❌ 네트워크 연결 테스트 실패", networkException);
+            }
+            
             throw new RuntimeException("주소 조회에 실패했습니다. 다시 시도해주세요.");
         }
     }
