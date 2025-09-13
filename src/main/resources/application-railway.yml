@@ -33,6 +33,10 @@ jwt:
   secret: ${JWT_SECRET:b2F1dGhzZXJ2ZXJzZWNyZXRhY2Nlc3N0b2tlbm9hdXRoc2VydmVyc2VjcmV0YWNjZXNzdG9rZW5vYXV0aHNlcnZlcnNlY3JldGFjY2Vzc3Rva2Vu}
   expiration: ${JWT_EXPIRATION:3000}
 
+oauth2:
+  redirect:
+    url: ${OAUTH2_REDIRECT_URL:https://rental-lovat-theta.vercel.app/auth/social-login}
+
 # 오피스텔 API 설정
 officetel:
   api:

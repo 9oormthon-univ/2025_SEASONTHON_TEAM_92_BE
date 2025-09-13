@@ -10,7 +10,6 @@ spring:
     password: 
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
-    # 애플리케이션 실행 시 스키마를 생성하고, 종료 시 삭제합니다.
     hibernate:
       ddl-auto: create-drop
     show_sql: true
@@ -25,7 +24,10 @@ spring:
               - profile
               - email
 
-# JWT 비밀키는 테스트에 필요하므로 기존 설정을 유지합니다.
 jwt:
   secret: b2F1dGhzZXJ2ZXJzZWNyZXRhY2Nlc3N0b2tlbm9hdXRoc2VydmVyc2VjcmV0YWNjZXNzdG9rZW5vYXV0aHNlcnZlcnNlY3JldGFjY2Vzc3Rva2Vu
   expiration: 3000
+
+oauth2:
+  redirect:
+    url: http://localhost:3000/auth/social-login

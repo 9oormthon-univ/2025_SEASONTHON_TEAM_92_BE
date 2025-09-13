@@ -9,11 +9,13 @@ import org.example.seasontonebackend.member.domain.Member;
 import org.example.seasontonebackend.member.domain.Role;
 import org.example.seasontonebackend.member.domain.SocialType;
 import org.example.seasontonebackend.member.repository.MemberRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -23,6 +25,9 @@ import java.util.Optional;
 public class GoogleService extends SimpleUrlAuthenticationSuccessHandler {
     private final MemberRepository memberRepository;
     private final JwtTokenProvider jwtTokenProvider;
+
+    @Value("${oauth2.redirect.url}")
+    private String frontendRedirectUrl;
 
     public GoogleService(MemberRepository memberRepository, JwtTokenProvider jwtTokenProvider) {
         this.memberRepository = memberRepository;
@@ -39,22 +44,17 @@ public class GoogleService extends SimpleUrlAuthenticationSuccessHandler {
         String name = oAuth2User.getAttribute("name");
         SocialType socialType = SocialType.GOOGLE;
 
-        // 1. 소셜 ID로 사용자 조회
         Member member = memberRepository.findByProviderId(providerId).orElse(null);
         boolean isNewUser = false;
 
         if (member == null) {
-            // 2. 소셜 ID로 가입한 사용자가 없으면, 이메일로 조회
             Optional<Member> existingMemberOpt = memberRepository.findByEmail(email);
-
             if (existingMemberOpt.isPresent()) {
-                // 2a. 이메일이 존재하면, 기존 계정에 소셜 정보 연동
                 member = existingMemberOpt.get();
                 member.setProviderId(providerId);
                 member.setSocialType(socialType);
                 memberRepository.save(member);
             } else {
-                // 2b. 이메일도 존재하지 않으면, 신규 소셜 회원으로 가입
                 isNewUser = true;
                 member = Member.builder()
                         .email(email)
@@ -70,9 +70,13 @@ public class GoogleService extends SimpleUrlAuthenticationSuccessHandler {
             }
         }
 
-        // 3. JWT 토큰 생성 및 프론트엔드로 리다이렉트
         String jwtToken = jwtTokenProvider.createToken(member.getId(), member.getEmail(), member.getRole().toString());
-        String redirectUrl = "https://rental-lovat-theta.vercel.app/auth/social-login?token=" + jwtToken + "&isNewUser=" + isNewUser;
+
+        String redirectUrl = UriComponentsBuilder.fromUriString(frontendRedirectUrl)
+                .queryParam("token", jwtToken)
+                .queryParam("isNewUser", isNewUser)
+                .build().toUriString();
+        
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 }
