@@ -9,19 +9,25 @@ import org.example.seasontonebackend.member.domain.Member;
 import org.example.seasontonebackend.member.domain.Role;
 import org.example.seasontonebackend.member.domain.SocialType;
 import org.example.seasontonebackend.member.repository.MemberRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Service
 @Transactional
 public class GoogleService extends SimpleUrlAuthenticationSuccessHandler {
     private final MemberRepository memberRepository;
     private final JwtTokenProvider jwtTokenProvider;
+
+    @Value("${oauth2.redirect.url}")
+    private String frontendRedirectUrl;
 
     public GoogleService(MemberRepository memberRepository, JwtTokenProvider jwtTokenProvider) {
         this.memberRepository = memberRepository;
@@ -36,29 +42,41 @@ public class GoogleService extends SimpleUrlAuthenticationSuccessHandler {
         String providerId = oAuth2User.getAttribute("sub");
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
+        SocialType socialType = SocialType.GOOGLE;
 
         Member member = memberRepository.findByProviderId(providerId).orElse(null);
         boolean isNewUser = false;
 
         if (member == null) {
-            isNewUser = true;
-            member = Member.builder()
-                    .email(email)
-                    .name(name)
-                    .socialType(SocialType.GOOGLE)
-                    .providerId(providerId)
-                    .role(Role.User)
-                    .onboardingCompleted(false)
-                    .gpsVerified(false)
-                    .contractVerified(false)
-                    .build();
-            memberRepository.save(member);
+            Optional<Member> existingMemberOpt = memberRepository.findByEmail(email);
+            if (existingMemberOpt.isPresent()) {
+                member = existingMemberOpt.get();
+                member.setProviderId(providerId);
+                member.setSocialType(socialType);
+                memberRepository.save(member);
+            } else {
+                isNewUser = true;
+                member = Member.builder()
+                        .email(email)
+                        .name(name)
+                        .socialType(socialType)
+                        .providerId(providerId)
+                        .role(Role.User)
+                        .onboardingCompleted(false)
+                        .gpsVerified(false)
+                        .contractVerified(false)
+                        .build();
+                memberRepository.save(member);
+            }
         }
 
         String jwtToken = jwtTokenProvider.createToken(member.getId(), member.getEmail(), member.getRole().toString());
 
-        // TODO: 프론트엔드 리다이렉션 URL을 환경변수로 관리하는 것이 좋습니다.
-        String redirectUrl = "https://rental-lovat-theta.vercel.app/auth/social-login?token=" + jwtToken + "&isNewUser=" + isNewUser;
+        String redirectUrl = UriComponentsBuilder.fromUriString(frontendRedirectUrl)
+                .queryParam("token", jwtToken)
+                .queryParam("isNewUser", isNewUser)
+                .build().toUriString();
+        
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 }
