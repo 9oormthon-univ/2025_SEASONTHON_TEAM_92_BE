@@ -53,14 +53,17 @@ public class Member implements UserDetails {
     private Integer maintenanceFee; // 관리비
 
     @Column(name = "is_gps_verified")
+    @Builder.Default
     private Boolean gpsVerified = false; // GPS 인증 여부
 
     @Column(name = "is_contract_verified")
+    @Builder.Default
     private Boolean contractVerified = false; // 계약서 인증 여부
 
     private String dong;
 
     @Column(name = "onboarding_completed")
+    @Builder.Default
     private Boolean onboardingCompleted = false; // 온보딩 완료 여부
 
     // ===== UserDetails 구현 =====

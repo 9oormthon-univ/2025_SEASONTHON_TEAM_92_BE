@@ -3,6 +3,7 @@ package org.example.seasontonebackend.location.application;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -25,8 +26,10 @@ public class GeocodingService {
         this.restTemplate = new RestTemplate();
         
         // Railway 환경에서 외부 API 호출을 위한 타임아웃 설정
-        restTemplate.getRequestFactory().setConnectTimeout(10000); // 10초
-        restTemplate.getRequestFactory().setReadTimeout(10000); // 10초
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+        factory.setConnectTimeout(10000); // 10초
+        factory.setReadTimeout(10000); // 10초
+        restTemplate.setRequestFactory(factory);
         
         log.info("🔧 GeocodingService 초기화 완료");
         log.info("📍 VWorld API URL: {}", apiUrl);
@@ -120,7 +123,7 @@ public class GeocodingService {
             // 네트워크 연결 테스트
             try {
                 log.info("🔍 네트워크 연결 테스트 시작...");
-                String testUrl = "http://api.vworld.kr/req/address";
+                String testUrl = "https://api.vworld.kr/req/address";
                 String testResponse = restTemplate.getForObject(testUrl, String.class);
                 log.info("✅ 기본 연결 테스트 성공: {}", testResponse != null ? "응답 받음" : "응답 없음");
             } catch (Exception networkException) {
