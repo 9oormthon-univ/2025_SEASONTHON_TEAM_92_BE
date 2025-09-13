@@ -47,6 +47,7 @@ public class MemberService {
                 .maintenanceFee(null)
                 .gpsVerified(false)
                 .contractVerified(false)
+                .onboardingCompleted(false)
                 .build();
         memberRepository.save(newMember);
         return newMember;
