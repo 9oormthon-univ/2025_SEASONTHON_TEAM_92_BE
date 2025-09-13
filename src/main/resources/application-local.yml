@@ -30,4 +30,4 @@ jwt:
 
 oauth2:
   redirect:
-    url: http://localhost:3000/auth/social-login
+    url: ${OAUTH_REDIRECT_URL:http://localhost:3000/auth/social-login}
