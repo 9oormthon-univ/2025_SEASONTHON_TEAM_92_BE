@@ -59,6 +59,12 @@ public class LocationService {
             member.setGpsVerified(true);
             memberRepository.save(member); // 변경사항 저장
 
+            log.info("Member {} saved with gpsVerified = true", member.getId());
+
+            // DEBUGGING STEP:
+            Member savedMember = memberRepository.findById(member.getId()).orElseThrow();
+            log.info("Re-fetched member {}, gpsVerified status is: {}", savedMember.getId(), savedMember.isGpsVerified());
+
             // 5. 인증 성공 응답 생성
             LocationVerificationResponse response = LocationVerificationResponse.builder()
                     .userId(String.valueOf(member.getId())) // Member ID 사용

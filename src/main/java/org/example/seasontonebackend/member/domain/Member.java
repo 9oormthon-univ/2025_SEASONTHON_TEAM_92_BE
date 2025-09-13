@@ -52,9 +52,11 @@ public class Member implements UserDetails {
 
     private Integer maintenanceFee; // 관리비
 
-    private boolean isGpsVerified; // GPS 인증 여부
+    @Column(name = "is_gps_verified")
+    private boolean gpsVerified; // GPS 인증 여부
 
-    private boolean isContractVerified; // 계약서 인증 여부
+    @Column(name = "is_contract_verified")
+    private boolean contractVerified; // 계약서 인증 여부
 
     private String dong;
 

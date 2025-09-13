@@ -45,8 +45,8 @@ public class MemberService {
                 .security(null)
                 .rent(null)
                 .maintenanceFee(null)
-                .isGpsVerified(false)
-                .isContractVerified(false)
+                .gpsVerified(false)
+                .contractVerified(false)
                 .build();
         memberRepository.save(newMember);
         return newMember;
@@ -103,6 +103,8 @@ public class MemberService {
         member.setBuildingType(memberDongBuildingRequestDto.getBuildingType());
         member.setContractType(memberDongBuildingRequestDto.getContractType());
         member.setSecurity(memberDongBuildingRequestDto.getSecurity());
+        member.setRent(memberDongBuildingRequestDto.getRent());
+        member.setMaintenanceFee(memberDongBuildingRequestDto.getMaintenanceFee());
 
         System.out.println(memberId);
         System.out.println(member.getDong());
