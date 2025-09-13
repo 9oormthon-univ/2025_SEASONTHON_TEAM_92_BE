@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -36,28 +37,41 @@ public class GoogleService extends SimpleUrlAuthenticationSuccessHandler {
         String providerId = oAuth2User.getAttribute("sub");
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
+        SocialType socialType = SocialType.GOOGLE;
 
+        // 1. 소셜 ID로 사용자 조회
         Member member = memberRepository.findByProviderId(providerId).orElse(null);
         boolean isNewUser = false;
 
         if (member == null) {
-            isNewUser = true;
-            member = Member.builder()
-                    .email(email)
-                    .name(name)
-                    .socialType(SocialType.GOOGLE)
-                    .providerId(providerId)
-                    .role(Role.User)
-                    .onboardingCompleted(false)
-                    .gpsVerified(false)
-                    .contractVerified(false)
-                    .build();
-            memberRepository.save(member);
+            // 2. 소셜 ID로 가입한 사용자가 없으면, 이메일로 조회
+            Optional<Member> existingMemberOpt = memberRepository.findByEmail(email);
+
+            if (existingMemberOpt.isPresent()) {
+                // 2a. 이메일이 존재하면, 기존 계정에 소셜 정보 연동
+                member = existingMemberOpt.get();
+                member.setProviderId(providerId);
+                member.setSocialType(socialType);
+                memberRepository.save(member);
+            } else {
+                // 2b. 이메일도 존재하지 않으면, 신규 소셜 회원으로 가입
+                isNewUser = true;
+                member = Member.builder()
+                        .email(email)
+                        .name(name)
+                        .socialType(socialType)
+                        .providerId(providerId)
+                        .role(Role.User)
+                        .onboardingCompleted(false)
+                        .gpsVerified(false)
+                        .contractVerified(false)
+                        .build();
+                memberRepository.save(member);
+            }
         }
 
+        // 3. JWT 토큰 생성 및 프론트엔드로 리다이렉트
         String jwtToken = jwtTokenProvider.createToken(member.getId(), member.getEmail(), member.getRole().toString());
-
-        // TODO: 프론트엔드 리다이렉션 URL을 환경변수로 관리하는 것이 좋습니다.
         String redirectUrl = "https://rental-lovat-theta.vercel.app/auth/social-login?token=" + jwtToken + "&isNewUser=" + isNewUser;
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
