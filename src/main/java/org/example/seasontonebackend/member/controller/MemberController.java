@@ -33,35 +33,49 @@ public class MemberController {
 
     @PostMapping("/create")
     public ResponseEntity<?> memberCreate(@RequestBody MemberCreateDto memberCreateDto) {
-        Member member = memberService.create(memberCreateDto);
-        
-        // 프론트엔드가 기대하는 형태로 응답 구성
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("message", "회원가입이 완료되었습니다.");
-        response.put("user", Map.of(
-            "id", member.getId().toString(),
-            "email", member.getEmail(),
-            "nickname", member.getName(), // 프론트엔드는 nickname 필드를 기대함
-            "role", member.getRole().toString().toLowerCase(), // 프론트엔드는 소문자 role을 기대함
-            "profileCompleted", false,
-            "diagnosisCompleted", false,
-            "onboardingCompleted", false
-        ));
-        
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        try {
+            Member member = memberService.create(memberCreateDto);
+            
+            // 프론트엔드가 기대하는 형태로 응답 구성
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "회원가입이 완료되었습니다.");
+            response.put("user", Map.of(
+                "id", member.getId().toString(),
+                "email", member.getEmail(),
+                "nickname", member.getName(), // 프론트엔드는 nickname 필드를 기대함
+                "role", member.getRole().toString().toLowerCase(), // 프론트엔드는 소문자 role을 기대함
+                "profileCompleted", false,
+                "diagnosisCompleted", false,
+                "onboardingCompleted", false
+            ));
+            
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "회원가입 중 오류가 발생했습니다: " + e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 
     @PostMapping("/doLogin")
     public ResponseEntity<?> doLogin(@RequestBody MemberLoginDto memberLoginDto) {
-        Member member = memberService.login(memberLoginDto);
-        String jwtToken = jwtTokenProvider.createToken(member.getId(), member.getEmail(), member.getRole().toString());
+        try {
+            Member member = memberService.login(memberLoginDto);
+            String jwtToken = jwtTokenProvider.createToken(member.getId(), member.getEmail(), member.getRole().toString());
 
-        Map<String, Object> loginInfo = new HashMap<>();
-        loginInfo.put("id", member.getId());
-        loginInfo.put("token", jwtToken);
-        return new ResponseEntity<>(loginInfo, HttpStatus.OK);
+            Map<String, Object> loginInfo = new HashMap<>();
+            loginInfo.put("id", member.getId());
+            loginInfo.put("token", jwtToken);
+            return new ResponseEntity<>(loginInfo, HttpStatus.OK);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "로그인 중 오류가 발생했습니다: " + e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 
