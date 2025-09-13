@@ -23,6 +23,9 @@ public class GeocodingService {
 
     public GeocodingService() {
         this.restTemplate = new RestTemplate();
+        log.info("🔧 GeocodingService 초기화 완료");
+        log.info("📍 VWorld API URL: {}", apiUrl);
+        log.info("🔑 VWorld API Key: {}", apiKey != null ? apiKey.substring(0, 8) + "..." : "null");
     }
 
     /**

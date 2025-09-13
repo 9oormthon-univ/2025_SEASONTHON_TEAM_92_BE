@@ -107,7 +107,12 @@ public class LocationService {
                     .build();
 
         } catch (Exception e) {
-            log.error("주소 미리보기 실패", e);
+            log.error("❌ 주소 미리보기 실패 - 좌표: ({}, {})", longitude, latitude, e);
+            log.error("예외 타입: {}", e.getClass().getSimpleName());
+            log.error("예외 메시지: {}", e.getMessage());
+            if (e.getCause() != null) {
+                log.error("원인 예외: {}", e.getCause().getMessage());
+            }
 
             return AddressPreviewResponse.builder()
                     .address("주소를 가져올 수 없습니다")
