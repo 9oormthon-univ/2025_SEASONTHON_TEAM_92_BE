@@ -54,10 +54,6 @@ vworld:
     url: https://rental-lovat-theta.vercel.app/api/vworld-proxy
     enabled: ${VWORLD_API_ENABLED:true}
 
-# OAuth2 설정
-oauth2:
-  redirect:
-    url: ${OAUTH_REDIRECT_URL:https://rental-lovat-theta.vercel.app/auth/social-login}
 
 # 정책 API 설정 (해커톤용 - 추후 확장 가능)
 policy:
