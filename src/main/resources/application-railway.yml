@@ -37,7 +37,7 @@ officetel:
 vworld:
   api:
     key: ${VWORLD_API_KEY:D2B43972-B325-3DEF-9F41-FF3316FD3AB0}
-    url: http://api.vworld.kr/req/address
+    url: https://api.vworld.kr/req/address
 
 # 정책 API 설정 (해커톤용 - 추후 확장 가능)
 policy:

@@ -23,9 +23,15 @@ public class GeocodingService {
 
     public GeocodingService() {
         this.restTemplate = new RestTemplate();
+        
+        // Railway 환경에서 외부 API 호출을 위한 타임아웃 설정
+        restTemplate.getRequestFactory().setConnectTimeout(10000); // 10초
+        restTemplate.getRequestFactory().setReadTimeout(10000); // 10초
+        
         log.info("🔧 GeocodingService 초기화 완료");
         log.info("📍 VWorld API URL: {}", apiUrl);
         log.info("🔑 VWorld API Key: {}", apiKey != null ? apiKey.substring(0, 8) + "..." : "null");
+        log.info("⏱️ 연결 타임아웃: 10초, 읽기 타임아웃: 10초");
     }
 
     /**
