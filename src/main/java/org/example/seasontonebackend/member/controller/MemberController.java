@@ -34,7 +34,11 @@ public class MemberController {
     @PostMapping("/create")
     public ResponseEntity<?> memberCreate(@RequestBody MemberCreateDto memberCreateDto) {
         try {
+            System.out.println("=== 회원가입 요청 시작 ===");
+            System.out.println("요청 데이터: " + memberCreateDto);
+            
             Member member = memberService.create(memberCreateDto);
+            System.out.println("회원 생성 성공: " + member.getEmail());
             
             // 프론트엔드가 기대하는 형태로 응답 구성
             Map<String, Object> response = new HashMap<>();
@@ -50,8 +54,13 @@ public class MemberController {
                 "onboardingCompleted", false
             ));
             
+            System.out.println("=== 회원가입 응답 완료 ===");
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
+            System.err.println("=== 회원가입 오류 발생 ===");
+            System.err.println("오류 메시지: " + e.getMessage());
+            e.printStackTrace();
+            
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", "회원가입 중 오류가 발생했습니다: " + e.getMessage());
@@ -63,14 +72,26 @@ public class MemberController {
     @PostMapping("/doLogin")
     public ResponseEntity<?> doLogin(@RequestBody MemberLoginDto memberLoginDto) {
         try {
+            System.out.println("=== 로그인 요청 시작 ===");
+            System.out.println("요청 데이터: " + memberLoginDto);
+            
             Member member = memberService.login(memberLoginDto);
+            System.out.println("로그인 성공: " + member.getEmail());
+            
             String jwtToken = jwtTokenProvider.createToken(member.getId(), member.getEmail(), member.getRole().toString());
+            System.out.println("JWT 토큰 생성 완료");
 
             Map<String, Object> loginInfo = new HashMap<>();
             loginInfo.put("id", member.getId());
             loginInfo.put("token", jwtToken);
+            
+            System.out.println("=== 로그인 응답 완료 ===");
             return new ResponseEntity<>(loginInfo, HttpStatus.OK);
         } catch (Exception e) {
+            System.err.println("=== 로그인 오류 발생 ===");
+            System.err.println("오류 메시지: " + e.getMessage());
+            e.printStackTrace();
+            
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", "로그인 중 오류가 발생했습니다: " + e.getMessage());
