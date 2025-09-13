@@ -35,7 +35,7 @@ jwt:
 
 oauth2:
   redirect:
-    url: ${OAUTH2_REDIRECT_URL:https://rental-lovat-theta.vercel.app/auth/social-login}
+    url: ${OAUTH_REDIRECT_URL:https://rental-lovat-theta.vercel.app/auth/social-login}
 
 # 오피스텔 API 설정
 officetel:
