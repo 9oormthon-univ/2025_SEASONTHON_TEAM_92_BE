@@ -1,9 +1,6 @@
 package org.example.seasontonebackend.member.domain;
 
-
-
 import jakarta.persistence.*;
-
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -53,18 +50,22 @@ public class Member implements UserDetails {
     private Integer maintenanceFee; // 관리비
 
     @Column(name = "is_gps_verified")
-    @Builder.Default
     private Boolean gpsVerified = false; // GPS 인증 여부
 
     @Column(name = "is_contract_verified")
-    @Builder.Default
     private Boolean contractVerified = false; // 계약서 인증 여부
 
     private String dong;
 
     @Column(name = "onboarding_completed")
-    @Builder.Default
     private Boolean onboardingCompleted = false; // 온보딩 완료 여부
+
+    @Column(name = "provider_id")
+    private String providerId; // 구글 로그인 고유 식별 id
+
+    @Column(name = "social_type")
+    @Enumerated(EnumType.STRING)
+    private SocialType socialType; // 소셜로그인 종류
 
     // ===== UserDetails 구현 =====
     @Override

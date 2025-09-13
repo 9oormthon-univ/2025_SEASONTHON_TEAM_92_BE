@@ -73,3 +73,17 @@ management:
   endpoint:
     health:
       show-details: always
+
+# Google OAuth2 Client
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 
+            client-secret: 
+            scope:
+              - profile
+              - email
+
