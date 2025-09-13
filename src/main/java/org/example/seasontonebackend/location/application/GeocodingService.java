@@ -20,13 +20,12 @@ public class GeocodingService {
 
     @Value("${vworld.api.url}")
     private String apiUrl;
+    
+    @Value("${vworld.api.enabled:true}")
+    private boolean apiEnabled;
 
     public GeocodingService() {
         this.restTemplate = new RestTemplate();
-        
-        // Railway 환경에서 외부 API 호출을 위한 설정
-        restTemplate.getRequestFactory().setConnectTimeout(10000); // 10초
-        restTemplate.getRequestFactory().setReadTimeout(10000); // 10초
     }
 
     @jakarta.annotation.PostConstruct
