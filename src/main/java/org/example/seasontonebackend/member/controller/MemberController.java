@@ -98,5 +98,23 @@ public class MemberController {
         return new ResponseEntity<>(successResponse, HttpStatus.OK);
     }
 
+    @PutMapping("/update")
+    public ResponseEntity<?> updateUser(@RequestBody Map<String, Object> updateData, @AuthenticationPrincipal Member member) {
+        try {
+            memberService.updateUserInfo(member, updateData);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "사용자 정보가 성공적으로 업데이트되었습니다.");
+            
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "사용자 정보 업데이트 중 오류가 발생했습니다: " + e.getMessage());
+            
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }

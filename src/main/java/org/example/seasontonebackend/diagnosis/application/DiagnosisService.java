@@ -116,7 +116,28 @@ public class DiagnosisService {
         List<DiagnosisResponse> responses = responseRepository.findByUserId(member.getId());
 
         if (responses.isEmpty()) {
-            throw new RuntimeException("진단 결과가 없습니다.");
+            // 진단 결과가 없는 경우 기본값 반환
+            return DiagnosisResultResponseDTO.builder()
+                    .summary(DiagnosisResultResponseDTO.Summary.builder()
+                            .totalScore(0)
+                            .grade("미완료")
+                            .buildingAverage(0.0)
+                            .neighborhoodAverage(0.0)
+                            .buildingRank(0)
+                            .neighborhoodRank(0)
+                            .build())
+                    .categoryDetails(new ArrayList<>())
+                    .analysis(DiagnosisResultResponseDTO.Analysis.builder()
+                            .strengths(new ArrayList<>())
+                            .improvements(new ArrayList<>())
+                            .build())
+                    .statistics(DiagnosisResultResponseDTO.Statistics.builder()
+                            .participantCount(0)
+                            .responseCount(0)
+                            .buildingResidents(0)
+                            .neighborhoodResidents(0)
+                            .build())
+                    .build();
         }
 
         int totalScore = responses.stream()

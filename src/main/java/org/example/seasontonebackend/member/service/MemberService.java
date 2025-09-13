@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -71,12 +72,23 @@ public class MemberService {
 
 
     public MemberProfileDto getMemberProfile(Member member) {
-
         return MemberProfileDto.builder()
                 .profileName(member.getName())
                 .profileEmail(member.getEmail())
                 .profileBuilding(member.getBuilding())
                 .profileDong(member.getDong())
+                .name(member.getName())
+                .email(member.getEmail())
+                .dong(member.getDong())
+                .building(member.getBuilding())
+                .buildingType(member.getBuildingType())
+                .contractType(member.getContractType())
+                .security(member.getSecurity())
+                .rent(member.getRent())
+                .maintenanceFee(member.getMaintenanceFee())
+                .gpsVerified(member.isGpsVerified())
+                .contractVerified(member.isContractVerified())
+                .onboardingCompleted(member.isOnboardingCompleted())
                 .build();
     }
 
@@ -101,5 +113,28 @@ public class MemberService {
 
         memberRepository.save(member);
 
+    }
+
+    public void updateUserInfo(Member member, Map<String, Object> updateData) {
+        boolean updated = false;
+        
+        if (updateData.containsKey("onboardingCompleted")) {
+            member.setOnboardingCompleted((Boolean) updateData.get("onboardingCompleted"));
+            updated = true;
+        }
+        
+        if (updateData.containsKey("rent")) {
+            member.setRent(((Number) updateData.get("rent")).intValue());
+            updated = true;
+        }
+        
+        if (updateData.containsKey("maintenanceFee")) {
+            member.setMaintenanceFee(((Number) updateData.get("maintenanceFee")).intValue());
+            updated = true;
+        }
+        
+        if (updated) {
+            memberRepository.save(member);
+        }
     }
 }

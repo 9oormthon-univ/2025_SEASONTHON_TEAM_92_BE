@@ -39,10 +39,11 @@ public class GeocodingService {
             );
 
             String response = restTemplate.getForObject(url, String.class);
-            log.debug("VWorld API 응답: {}", response);
+            log.info("VWorld API 응답: {}", response);
 
             if (response == null) {
-                return getFallbackAddress(longitude, latitude);
+                log.error("VWorld API 응답이 null입니다.");
+                throw new RuntimeException("주소 조회에 실패했습니다. 다시 시도해주세요.");
             }
 
             JSONObject jsonResponse = new JSONObject(response);
@@ -52,7 +53,7 @@ public class GeocodingService {
                 String status = jsonResponse.getJSONObject("response").getString("status");
                 if ("ERROR".equals(status)) {
                     log.error("VWorld API 오류 발생: {}", jsonResponse.toString());
-                    return getFallbackAddress(longitude, latitude);
+                    throw new RuntimeException("주소 조회에 실패했습니다. 다시 시도해주세요.");
                 }
             }
 
@@ -85,17 +86,22 @@ public class GeocodingService {
                         String selectedAddress = roadAddress != null ? roadAddress : parcelAddress;
                         if (selectedAddress != null) {
                             log.info("✅ 주소 변환 성공: {}", selectedAddress);
+                            log.info("도로명주소: {}", roadAddress);
+                            log.info("지번주소: {}", parcelAddress);
                             return selectedAddress;
                         }
                     }
                 }
             }
+            
+            // API 응답은 정상이지만 주소를 찾지 못한 경우
+            log.warn("API 응답은 정상이지만 주소를 찾을 수 없습니다. 좌표: ({}, {})", longitude, latitude);
+            return getFallbackAddress(longitude, latitude);
 
         } catch (Exception e) {
             log.error("VWorld API 호출 실패", e);
+            throw new RuntimeException("주소 조회에 실패했습니다. 다시 시도해주세요.");
         }
-
-        return getFallbackAddress(longitude, latitude);
     }
 
     /**
@@ -107,39 +113,113 @@ public class GeocodingService {
     }
 
     /**
-     * 주소에서 동 정보 추출
+     * 주소에서 동 정보 추출 (시/도, 구/군, 동/읍/면 포함)
      */
     private String extractNeighborhoodFromAddress(String address) {
         if (address == null || address.isEmpty()) {
             return "알 수 없는 동";
         }
 
+        log.info("주소 파싱 시작: {}", address);
         String[] parts = address.split(" ");
+        StringBuilder result = new StringBuilder();
+        
+        // 시/도 찾기
+        for (String part : parts) {
+            if (part.endsWith("시") || part.endsWith("도") || part.endsWith("특별시") || part.endsWith("광역시")) {
+                result.append(part).append(" ");
+                log.info("시/도 발견: {}", part);
+                break;
+            }
+        }
+        
+        // 구/군 찾기
+        for (String part : parts) {
+            if (part.endsWith("구") || part.endsWith("군")) {
+                result.append(part).append(" ");
+                log.info("구/군 발견: {}", part);
+                break;
+            }
+        }
+        
+        // 동/읍/면 찾기
         for (String part : parts) {
             if (part.endsWith("동") || part.endsWith("면") || part.endsWith("읍")) {
-                return part;
+                result.append(part);
+                log.info("동/읍/면 발견: {}", part);
+                break;
             }
         }
-
-        for (String part : parts) {
-            if (part.endsWith("구")) {
-                return part;
-            }
-        }
-
-        return "알 수 없는 동";
+        
+        String resultStr = result.toString().trim();
+        log.info("최종 파싱 결과: {}", resultStr);
+        return resultStr.isEmpty() ? "알 수 없는 동" : resultStr;
     }
 
     /**
-     * API 호출 실패 시 대체 주소 생성
+     * API 호출 실패 시 대체 주소 생성 (좌표 기반 지역 추정)
      */
     private String getFallbackAddress(double longitude, double latitude) {
-        if (latitude >= 37.4 && latitude <= 37.7 && longitude >= 126.8 && longitude <= 127.2) {
+        // 서울 강남구 (더 좁은 범위)
+        if (latitude >= 37.49 && latitude <= 37.56 && longitude >= 127.02 && longitude <= 127.08) {
             return "서울특별시 강남구";
-        } else if (latitude >= 35.4 && latitude <= 35.8 && longitude >= 129.1 && longitude <= 129.6) {
+        }
+        // 서울 전체 지역 (강남구 제외)
+        else if (latitude >= 37.4 && latitude <= 37.7 && longitude >= 126.8 && longitude <= 127.2) {
+            return "서울특별시";
+        }
+        // 울산 지역
+        else if (latitude >= 35.4 && latitude <= 35.8 && longitude >= 129.1 && longitude <= 129.6) {
             return "울산광역시 중구";
-        } else {
-            return "서울특별시 강남구";
+        }
+        // 부산 지역
+        else if (latitude >= 35.0 && latitude <= 35.4 && longitude >= 128.8 && longitude <= 129.2) {
+            return "부산광역시 해운대구";
+        }
+        // 대구 지역
+        else if (latitude >= 35.7 && latitude <= 36.0 && longitude >= 128.4 && longitude <= 128.8) {
+            return "대구광역시 수성구";
+        }
+        // 인천 지역
+        else if (latitude >= 37.4 && latitude <= 37.6 && longitude >= 126.4 && longitude <= 126.8) {
+            return "인천광역시 연수구";
+        }
+        // 대전 지역
+        else if (latitude >= 36.2 && latitude <= 36.5 && longitude >= 127.2 && longitude <= 127.6) {
+            return "대전광역시 유성구";
+        }
+        // 광주 지역
+        else if (latitude >= 35.0 && latitude <= 35.3 && longitude >= 126.6 && longitude <= 127.0) {
+            return "광주광역시 서구";
+        }
+        // 경기도
+        else if (latitude >= 37.0 && latitude <= 38.0 && longitude >= 126.5 && longitude <= 127.5) {
+            return "경기도 성남시";
+        }
+        // 강원도
+        else if (latitude >= 37.0 && latitude <= 38.5 && longitude >= 127.5 && longitude <= 129.0) {
+            return "강원도 춘천시";
+        }
+        // 충청도
+        else if (latitude >= 36.0 && latitude <= 37.0 && longitude >= 126.0 && longitude <= 128.0) {
+            return "충청남도 천안시";
+        }
+        // 전라도
+        else if (latitude >= 34.5 && latitude <= 36.0 && longitude >= 125.5 && longitude <= 127.5) {
+            return "전라북도 전주시";
+        }
+        // 경상도
+        else if (latitude >= 35.0 && latitude <= 37.0 && longitude >= 128.0 && longitude <= 130.0) {
+            return "경상북도 포항시";
+        }
+        // 제주도
+        else if (latitude >= 33.0 && latitude <= 34.0 && longitude >= 126.0 && longitude <= 127.0) {
+            return "제주특별자치도 제주시";
+        }
+        // 기본값: 좌표를 기반으로 추정
+        else {
+            log.warn("알 수 없는 좌표 범위 - 경도: {}, 위도: {}", longitude, latitude);
+            return String.format("알 수 없는 지역 (%.4f, %.4f)", latitude, longitude);
         }
     }
 

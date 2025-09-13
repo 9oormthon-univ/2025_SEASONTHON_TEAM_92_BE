@@ -58,6 +58,10 @@ public class Member implements UserDetails {
 
     private String dong;
 
+    @Column(name = "onboarding_completed")
+    @Builder.Default
+    private boolean onboardingCompleted = false; // 온보딩 완료 여부
+
     // ===== UserDetails 구현 =====
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

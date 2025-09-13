@@ -12,4 +12,16 @@ public class MemberProfileDto {
     private String profileDong;
     private String profileBuilding;
     private String profileEmail;
+    private String name;
+    private String email;
+    private String dong;
+    private String building;
+    private String buildingType;
+    private String contractType;
+    private Long security;
+    private Integer rent;
+    private Integer maintenanceFee;
+    private boolean gpsVerified;
+    private boolean contractVerified;
+    private boolean onboardingCompleted;
 }
