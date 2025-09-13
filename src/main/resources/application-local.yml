@@ -14,23 +14,18 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show_sql: true
-
-# JWT 비밀키는 테스트에 필요하므로 기존 설정을 유지합니다.
-jwt:
-  secret: b2F1dGhzZXJ2ZXJzZWNyZXRhY2Nlc3N0b2tlbm9hdXRoc2VydmVyc2VjcmV0YWNjZXNzdG9rZW5vYXV0aHNlcnZlcnNlY3JldGFjY2Vzc3Rva2Vu
-  expiration: 3000
-
-
-# Google OAuth2 Client
-spring:
   security:
     oauth2:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID:your-google-client-id}
-            client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
+            client-id: YOUR_GOOGLE_CLIENT_ID
+            client-secret: YOUR_GOOGLE_CLIENT_SECRET
             scope:
               - profile
               - email
 
+# JWT 비밀키는 테스트에 필요하므로 기존 설정을 유지합니다.
+jwt:
+  secret: b2F1dGhzZXJ2ZXJzZWNyZXRhY2Nlc3N0b2tlbm9hdXRoc2VydmVyc2VjcmV0YWNjZXNzdG9rZW5vYXV0aHNlcnZlcnNlY3JldGFjY2Vzc3Rva2Vu
+  expiration: 3000
