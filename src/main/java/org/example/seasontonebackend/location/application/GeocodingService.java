@@ -23,9 +23,18 @@ public class GeocodingService {
 
     public GeocodingService() {
         this.restTemplate = new RestTemplate();
-        log.info("🔧 GeocodingService 초기화 완료");
-        log.info("📍 VWorld API URL: {}", apiUrl);
-        log.info("🔑 VWorld API Key: {}", apiKey != null ? apiKey.substring(0, 8) + "..." : "null");
+        
+        // Railway 환경에서 외부 API 호출을 위한 타임아웃 설정
+        restTemplate.getRequestFactory().setConnectTimeout(30000); // 30초
+        restTemplate.getRequestFactory().setReadTimeout(30000); // 30초
+    }
+
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        log.info("--- GeocodingService Initialization ---");
+        log.info("VWorld API URL loaded: {}", apiUrl);
+        log.info("VWorld API Key loaded: {}", apiKey != null && !apiKey.isEmpty() ? "********" : "null");
+        log.info("------------------------------------");
     }
 
     /**
@@ -107,21 +116,10 @@ public class GeocodingService {
             log.error("❌ VWorld API 호출 실패 - 좌표: ({}, {})", longitude, latitude, e);
             log.error("예외 타입: {}", e.getClass().getSimpleName());
             log.error("예외 메시지: {}", e.getMessage());
-            if (e.getCause() != null) {
-                log.error("원인 예외: {}", e.getCause().getMessage());
-            }
             
-            // 네트워크 연결 테스트
-            try {
-                log.info("🔍 네트워크 연결 테스트 시작...");
-                String testUrl = "https://api.vworld.kr/req/address";
-                String testResponse = restTemplate.getForObject(testUrl, String.class);
-                log.info("✅ 기본 연결 테스트 성공: {}", testResponse != null ? "응답 받음" : "응답 없음");
-            } catch (Exception networkException) {
-                log.error("❌ 네트워크 연결 테스트 실패", networkException);
-            }
-            
-            throw new RuntimeException("주소 조회에 실패했습니다. 다시 시도해주세요.");
+            // Railway 환경에서 외부 API 호출 실패 시 대체 주소 반환
+            log.warn("🚨 Railway 환경에서 외부 API 호출 실패, 대체 주소 사용");
+            return getFallbackAddress(longitude, latitude);
         }
     }
 
