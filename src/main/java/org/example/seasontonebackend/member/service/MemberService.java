@@ -87,9 +87,9 @@ public class MemberService {
                 .security(member.getSecurity())
                 .rent(member.getRent())
                 .maintenanceFee(member.getMaintenanceFee())
-                .gpsVerified(member.isGpsVerified())
-                .contractVerified(member.isContractVerified())
-                .onboardingCompleted(member.isOnboardingCompleted())
+                .gpsVerified(member.getGpsVerified() != null && member.getGpsVerified())
+                .contractVerified(member.getContractVerified() != null && member.getContractVerified())
+                .onboardingCompleted(member.getOnboardingCompleted() != null && member.getOnboardingCompleted())
                 .build();
     }
 

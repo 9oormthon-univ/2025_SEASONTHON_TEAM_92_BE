@@ -63,7 +63,7 @@ public class LocationService {
 
             // DEBUGGING STEP:
             Member savedMember = memberRepository.findById(member.getId()).orElseThrow();
-            log.info("Re-fetched member {}, gpsVerified status is: {}", savedMember.getId(), savedMember.isGpsVerified());
+            log.info("Re-fetched member {}, gpsVerified status is: {}", savedMember.getId(), savedMember.getGpsVerified());
 
             // 5. 인증 성공 응답 생성
             LocationVerificationResponse response = LocationVerificationResponse.builder()
