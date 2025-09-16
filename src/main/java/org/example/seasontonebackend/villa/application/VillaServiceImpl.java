@@ -215,13 +215,13 @@ public class VillaServiceImpl implements VillaService {
     }
 
     private List<VillaPublicApiResponseDTO.Item> callApiAndParseXml(String lawdCd, String dealYmd) {
-        // UriComponentsBuilder가 자동으로 URL 인코딩 수행
+        // UriComponentsBuilder로 URL 인코딩 수행
         URI uri = UriComponentsBuilder.fromUriString(API_URL)
                 .queryParam("serviceKey", serviceKey)
                 .queryParam("LAWD_CD", lawdCd)
                 .queryParam("DEAL_YMD", dealYmd)
                 .queryParam("numOfRows", MAX_ROWS_PER_REQUEST)
-                .build()
+                .build(true)
                 .toUri();
 
         log.debug("빌라 API 요청 URL: {}", uri);
