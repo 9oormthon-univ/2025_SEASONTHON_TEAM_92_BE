@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.example.seasontonebackend.member.domain.Member;
 
 import java.util.UUID;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 public class Report {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,6 +37,15 @@ public class Report {
     // 리포트 타입 ('free' 또는 'premium')
     @Column(name = "report_type")
     private String reportType;
+    
+    // 공유용 리포트 데이터 (JSON 형태로 저장)
+    @Column(name = "shared_report_data", columnDefinition = "TEXT")
+    private String sharedReportData;
+    
+    // 공유 가능 여부
+    @Builder.Default
+    @Column(name = "is_shareable")
+    private Boolean isShareable = true;
 
     @PrePersist
     public void generatePublicId() {

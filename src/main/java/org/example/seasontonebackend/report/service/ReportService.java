@@ -9,10 +9,15 @@ import org.example.seasontonebackend.report.dto.ReportRequestDto;
 import org.example.seasontonebackend.report.dto.ReportResponseDto;
 import org.example.seasontonebackend.report.repository.ReportRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -21,6 +26,12 @@ public class ReportService {
     private final ReportRepository reportRepository;
     private final MemberRepository memberRepository;
     private final DiagnosisResponseRepository diagnosisResponseRepository;
+    
+    // 동시 리포트 생성을 위한 스레드 풀 (최대 10개 동시 처리)
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
+    
+    // JSON 변환을 위한 ObjectMapper
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public ReportService(ReportRepository reportRepository, MemberRepository memberRepository, DiagnosisResponseRepository diagnosisResponseRepository) {
         this.reportRepository = reportRepository;
@@ -28,16 +39,41 @@ public class ReportService {
         this.diagnosisResponseRepository = diagnosisResponseRepository;
     }
 
+    @Transactional
     public String createReport(ReportRequestDto reportRequestDto, Member member) {
+        // 동시 생성 시 안전성을 위한 트랜잭션 처리
         Report report = Report.builder()
                 .member(member)
                 .userInput(reportRequestDto.getReportContent()) // 협상 요구사항 저장
                 .reportType(reportRequestDto.getReportType()) // 리포트 타입 저장
+                .isShareable(true) // 공유 가능으로 설정
                 .build();
 
         reportRepository.save(report);
 
+        // 공유용 리포트 데이터 생성 및 저장
+        try {
+            ReportResponseDto sharedReportData = buildReportResponse(report, member);
+            String jsonData = objectMapper.writeValueAsString(sharedReportData);
+            report.setSharedReportData(jsonData);
+            reportRepository.save(report);
+        } catch (Exception e) {
+            // JSON 변환 실패 시에도 리포트 생성은 계속 진행
+            System.err.println("공유용 데이터 생성 실패: " + e.getMessage());
+        }
+
         return report.getPublicId();
+    }
+    
+    // 비동기 리포트 생성 (대용량 처리용)
+    public CompletableFuture<String> createReportAsync(ReportRequestDto reportRequestDto, Member member) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return createReport(reportRequestDto, member);
+            } catch (Exception e) {
+                throw new RuntimeException("리포트 생성 실패: " + e.getMessage(), e);
+            }
+        }, executorService);
     }
 
     public ReportResponseDto getReport(Long reportId) {
@@ -52,6 +88,22 @@ public class ReportService {
         Report report = reportRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new NullPointerException("존재하지 않는 리포트입니다!"));
 
+        // 공유 가능한지 확인
+        if (!Boolean.TRUE.equals(report.getIsShareable())) {
+            throw new RuntimeException("공유할 수 없는 리포트입니다.");
+        }
+
+        // 저장된 공유용 데이터가 있으면 반환
+        if (report.getSharedReportData() != null && !report.getSharedReportData().isEmpty()) {
+            try {
+                return objectMapper.readValue(report.getSharedReportData(), ReportResponseDto.class);
+            } catch (Exception e) {
+                System.err.println("저장된 공유 데이터 파싱 실패: " + e.getMessage());
+                // 파싱 실패 시 실시간 생성으로 폴백
+            }
+        }
+
+        // 저장된 데이터가 없으면 실시간 생성 (기존 로직)
         Member member = report.getMember();
         return buildReportResponse(report, member);
     }
@@ -178,8 +230,8 @@ public class ReportService {
                 .contractSummary(contractSummary)
                 .subjectiveMetrics(subjectiveMetrics)
                 .negotiationCards(negotiationCards)
-                .policyInfos(buildStaticPolicyInfos()) // 데이터 추가
-                .disputeGuide(buildStaticDisputeGuide()) // 데이터 추가
+                .policyInfos(buildPolicyInfos("free"))
+                .disputeGuide(buildDisputeGuide("free"))
                 .build();
     }
 
@@ -191,6 +243,14 @@ public class ReportService {
                 .filter(s -> s.getMyScore() < s.getNeighborhoodAverage()) 
                 .sorted(Comparator.comparingDouble(s -> s.getMyScore() - s.getNeighborhoodAverage()))
                 .collect(Collectors.toList());
+
+        // 협상 카드가 없을 경우 기본 카드 생성
+        if (sortedScores.isEmpty()) {
+            sortedScores = subjectiveMetrics.getCategoryScores().stream()
+                    .sorted(Comparator.comparingDouble(s -> s.getMyScore() - s.getNeighborhoodAverage()))
+                    .limit(2)
+                    .collect(Collectors.toList());
+        }
 
         int priority = 1;
         for (ReportResponseDto.ScoreComparison score : sortedScores.stream().limit(2).collect(Collectors.toList())) {
@@ -237,17 +297,17 @@ public class ReportService {
         List<ReportResponseDto.ScoreComparison> categoryScores = IntStream.rangeClosed(1, 10)
                 .mapToObj(categoryId -> ReportResponseDto.ScoreComparison.builder()
                         .category(getCategoryName(categoryId))
-                        .myScore(myCategoryAverages.getOrDefault((long)categoryId, 0.0))
-                        .buildingAverage(buildingCategoryAverages.getOrDefault((long)categoryId, 0.0))
-                        .neighborhoodAverage(neighborhoodCategoryAverages.getOrDefault((long)categoryId, 0.0))
+                        .myScore(myCategoryAverages.getOrDefault((long)categoryId, 3.0)) // 기본값 3.0
+                        .buildingAverage(buildingCategoryAverages.getOrDefault((long)categoryId, 3.5)) // 기본값 3.5
+                        .neighborhoodAverage(neighborhoodCategoryAverages.getOrDefault((long)categoryId, 3.5)) // 기본값 3.5
                         .build())
                 .collect(Collectors.toList());
 
         ReportResponseDto.ScoreComparison overallScore = ReportResponseDto.ScoreComparison.builder()
                 .category("종합")
-                .myScore(myCategoryAverages.values().stream().mapToDouble(d -> d).average().orElse(0.0))
-                .buildingAverage(buildingCategoryAverages.values().stream().mapToDouble(d -> d).average().orElse(0.0))
-                .neighborhoodAverage(neighborhoodCategoryAverages.values().stream().mapToDouble(d -> d).average().orElse(0.0))
+                .myScore(myCategoryAverages.values().stream().mapToDouble(d -> d).average().orElse(3.0)) // 기본값 3.0
+                .buildingAverage(buildingCategoryAverages.values().stream().mapToDouble(d -> d).average().orElse(3.5)) // 기본값 3.5
+                .neighborhoodAverage(neighborhoodCategoryAverages.values().stream().mapToDouble(d -> d).average().orElse(3.5)) // 기본값 3.5
                 .build();
 
         return ReportResponseDto.SubjectiveMetricsDto.builder()

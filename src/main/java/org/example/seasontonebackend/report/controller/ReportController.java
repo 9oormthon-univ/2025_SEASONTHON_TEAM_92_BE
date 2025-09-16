@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 public class ReportController {
@@ -23,14 +24,43 @@ public class ReportController {
 
     @PostMapping("/report/create")
     public ResponseEntity<?> createReport(@RequestBody ReportRequestDto reportRequestDto, @AuthenticationPrincipal Member member) {
-        String publicId = reportService.createReport(reportRequestDto, member);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("publicId", publicId);
-        response.put("shareUrl", "/report/" + publicId);
-        
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        try {
+            String publicId = reportService.createReport(reportRequestDto, member);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("publicId", publicId);
+            response.put("shareUrl", "/report/" + publicId);
+            
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "리포트 생성 중 오류가 발생했습니다: " + e.getMessage());
+            
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    // 비동기 리포트 생성 API (대용량 동시 처리용)
+    @PostMapping("/report/create-async")
+    public ResponseEntity<?> createReportAsync(@RequestBody ReportRequestDto reportRequestDto, @AuthenticationPrincipal Member member) {
+        try {
+            CompletableFuture<String> future = reportService.createReportAsync(reportRequestDto, member);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "리포트 생성이 시작되었습니다. 잠시 후 완료됩니다.");
+            response.put("processing", true);
+            
+            return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "리포트 생성 중 오류가 발생했습니다: " + e.getMessage());
+            
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 
