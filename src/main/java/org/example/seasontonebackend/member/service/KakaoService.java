@@ -94,6 +94,13 @@ public class KakaoService extends SimpleUrlAuthenticationSuccessHandler {
                 .queryParam("isNewUser", isNewUser)
                 .build().toUriString();
         
+        System.out.println("=== Kakao OAuth Redirect Debug ===");
+        System.out.println("Frontend Redirect URL: " + frontendRedirectUrl);
+        System.out.println("Final Redirect URL: " + redirectUrl);
+        System.out.println("JWT Token: " + jwtToken);
+        System.out.println("Is New User: " + isNewUser);
+        System.out.println("================================");
+        
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 }
