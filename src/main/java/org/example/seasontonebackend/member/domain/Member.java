@@ -63,6 +63,10 @@ public class Member implements UserDetails {
     @Builder.Default
     private Boolean onboardingCompleted = false; // 온보딩 완료 여부
 
+    @Column(name = "diagnosis_completed")
+    @Builder.Default
+    private Boolean diagnosisCompleted = false; // 진단 완료 여부
+
     @Column(name = "provider_id")
     private String providerId; // 구글 로그인 고유 식별 id
 

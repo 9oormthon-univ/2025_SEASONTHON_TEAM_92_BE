@@ -24,4 +24,5 @@ public class MemberProfileDto {
     private boolean gpsVerified;
     private boolean contractVerified;
     private boolean onboardingCompleted;
+    private boolean diagnosisCompleted;
 }

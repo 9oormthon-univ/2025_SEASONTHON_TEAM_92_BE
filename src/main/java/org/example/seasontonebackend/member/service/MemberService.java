@@ -1,6 +1,7 @@
 package org.example.seasontonebackend.member.service;
 
 
+import org.example.seasontonebackend.diagnosis.domain.repository.DiagnosisResponseRepository;
 import org.example.seasontonebackend.member.domain.Member;
 import org.example.seasontonebackend.member.dto.MemberCreateDto;
 import org.example.seasontonebackend.member.dto.MemberDongBuildingRequestDto;
@@ -19,10 +20,12 @@ import java.util.Optional;
 public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DiagnosisResponseRepository diagnosisResponseRepository;
 
-    public MemberService(MemberRepository memberRepository, PasswordEncoder passwordEncoder) {
+    public MemberService(MemberRepository memberRepository, PasswordEncoder passwordEncoder, DiagnosisResponseRepository diagnosisResponseRepository) {
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
+        this.diagnosisResponseRepository = diagnosisResponseRepository;
     }
 
     public Member create(MemberCreateDto memberCreateDto) {
@@ -73,6 +76,13 @@ public class MemberService {
 
 
     public MemberProfileDto getMemberProfile(Member member) {
+        // 실제 진단 응답 데이터 존재 여부로 진단 완료 상태 판단
+        boolean hasDiagnosisResponses = !diagnosisResponseRepository.findByUserId(member.getId()).isEmpty();
+        
+        // 온보딩 완료 여부: 주소(dong)와 건물 정보가 모두 있는지 확인
+        boolean isOnboardingCompleted = member.getDong() != null && !member.getDong().isEmpty() && 
+                                       member.getBuilding() != null && !member.getBuilding().isEmpty();
+        
         return MemberProfileDto.builder()
                 .profileName(member.getName())
                 .profileEmail(member.getEmail())
@@ -89,7 +99,8 @@ public class MemberService {
                 .maintenanceFee(member.getMaintenanceFee())
                 .gpsVerified(member.getGpsVerified() != null && member.getGpsVerified())
                 .contractVerified(member.getContractVerified() != null && member.getContractVerified())
-                .onboardingCompleted(member.getOnboardingCompleted() != null && member.getOnboardingCompleted())
+                .onboardingCompleted(isOnboardingCompleted)
+                .diagnosisCompleted(hasDiagnosisResponses)
                 .build();
     }
 
