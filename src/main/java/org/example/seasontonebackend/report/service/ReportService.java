@@ -66,10 +66,21 @@ public class ReportService {
 
         String dong = member.getDong() != null ? member.getDong().trim() : "";
         String building = member.getBuilding() != null ? member.getBuilding().trim() : "";
-        String fullAddress = (dong + " " + building).trim();
         
         // 한글 인코딩 문제 해결을 위한 안전한 처리
-        if (fullAddress.isEmpty() || fullAddress.equals(" ")) {
+        String fullAddress;
+        if (dong.isEmpty() && building.isEmpty()) {
+            fullAddress = "주소 정보 없음";
+        } else if (dong.isEmpty()) {
+            fullAddress = building;
+        } else if (building.isEmpty()) {
+            fullAddress = dong;
+        } else {
+            fullAddress = dong + " " + building;
+        }
+        
+        // 한글이 깨진 경우 감지 및 처리
+        if (fullAddress.contains("?") || fullAddress.contains("�")) {
             fullAddress = "주소 정보 없음";
         }
         
