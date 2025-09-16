@@ -29,8 +29,8 @@ public class VillaServiceImpl implements VillaService {
     private static final int MONTHS_TO_FETCH = 3;
     private static final int MAX_ROWS_PER_REQUEST = 100;
 
-    // 🔥 제공받은 인증키로 하드코딩 (URL 인코딩된 버전)
-    private String serviceKey = "e20aoTYyOLpe4UPR3I70w%2BQLG5abe%2FL7o0QOJ4bOpnyRTZcTFrYAKb%2FMVp%2B%2FlNY8IMzLLdvjvf6BRGb7Tpa2OA%3D%3D";
+    // 🔥 제공받은 인증키로 하드코딩
+    private String serviceKey = "e20aoTYyOLpe4UPR3I70w+QLG5abe/L7o0QOJ4bOpnyRTZcTFrYAKb/MVp+/lNY8IMzLLdvjvf6BRGb7Tpa2OA==";
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final XmlMapper xmlMapper = new XmlMapper();
