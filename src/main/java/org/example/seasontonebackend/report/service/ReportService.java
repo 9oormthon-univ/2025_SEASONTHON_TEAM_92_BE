@@ -31,7 +31,7 @@ public class ReportService {
     public String createReport(ReportRequestDto reportRequestDto, Member member) {
         Report report = Report.builder()
                 .member(member)
-                .userInput(reportRequestDto.getReportContent())
+                .userInput(null) // 협상 요구사항 제거
                 .build();
 
         reportRepository.save(report);
@@ -62,7 +62,7 @@ public class ReportService {
 
         ReportResponseDto.SubjectiveMetricsDto subjectiveMetrics = buildSubjectiveMetrics(member, neighborhoodMembers, neighborhoodResponses);
 
-        List<ReportResponseDto.NegotiationCardDto> negotiationCards = buildNegotiationCards(subjectiveMetrics, report.getUserInput());
+        List<ReportResponseDto.NegotiationCardDto> negotiationCards = buildNegotiationCards(subjectiveMetrics, null);
 
         String fullAddress = (member.getDong() != null ? member.getDong() : "") + " " + (member.getBuilding() != null ? member.getBuilding() : "");
         String conditions = String.format("보증금 %s / 월세 %s / 관리비 %s",
@@ -182,13 +182,14 @@ public class ReportService {
                     .build());
         }
 
-        if (userInput != null && !userInput.isEmpty()) {
-            cards.add(ReportResponseDto.NegotiationCardDto.builder()
-                    .priority(priority)
-                    .title("사용자 직접 입력 내용")
-                    .recommendationScript(String.format("추가로, '%s' 문제에 대해 논의가 필요합니다.", userInput))
-                    .build());
-        }
+        // 협상 요구사항 관련 코드 제거
+        // if (userInput != null && !userInput.isEmpty()) {
+        //     cards.add(ReportResponseDto.NegotiationCardDto.builder()
+        //             .priority(priority)
+        //             .title("사용자 직접 입력 내용")
+        //             .recommendationScript(String.format("추가로, '%s' 문제에 대해 논의가 필요합니다.", userInput))
+        //             .build());
+        // }
 
         return cards;
     }
