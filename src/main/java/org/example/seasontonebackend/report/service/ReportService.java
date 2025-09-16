@@ -28,7 +28,7 @@ public class ReportService {
         this.diagnosisResponseRepository = diagnosisResponseRepository;
     }
 
-    public Long createReport(ReportRequestDto reportRequestDto, Member member) {
+    public String createReport(ReportRequestDto reportRequestDto, Member member) {
         Report report = Report.builder()
                 .member(member)
                 .userInput(reportRequestDto.getReportContent())
@@ -36,7 +36,7 @@ public class ReportService {
 
         reportRepository.save(report);
 
-        return report.getReportId();
+        return report.getPublicId();
     }
 
     public ReportResponseDto getReport(Long reportId) {
@@ -44,7 +44,18 @@ public class ReportService {
                 .orElseThrow(() -> new NullPointerException("존재하지 않는 리포트입니다!"));
 
         Member member = report.getMember();
+        return buildReportResponse(report, member);
+    }
 
+    public ReportResponseDto getReportByPublicId(String publicId) {
+        Report report = reportRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NullPointerException("존재하지 않는 리포트입니다!"));
+
+        Member member = report.getMember();
+        return buildReportResponse(report, member);
+    }
+
+    private ReportResponseDto buildReportResponse(Report report, Member member) {
         List<Member> neighborhoodMembers = memberRepository.findByDong(member.getDong());
         List<Long> neighborhoodMemberIds = neighborhoodMembers.stream().map(Member::getId).collect(Collectors.toList());
         List<DiagnosisResponse> neighborhoodResponses = diagnosisResponseRepository.findByUserIdIn(neighborhoodMemberIds);
@@ -92,8 +103,8 @@ public class ReportService {
                 .contractSummary(contractSummary)
                 .subjectiveMetrics(subjectiveMetrics)
                 .negotiationCards(negotiationCards)
-                .policyInfos(buildStaticPolicyInfos()) // 데이터 추가
-                .disputeGuide(buildStaticDisputeGuide()) // 데이터 추가
+                .policyInfos(buildStaticPolicyInfos())
+                .disputeGuide(buildStaticDisputeGuide())
                 .build();
     }
 

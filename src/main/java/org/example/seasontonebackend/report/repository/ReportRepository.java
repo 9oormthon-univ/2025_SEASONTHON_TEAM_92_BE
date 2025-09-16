@@ -10,4 +10,5 @@ import java.util.Optional;
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long> {
     Optional<Report> findByReportId(Long reportId);
+    Optional<Report> findByPublicId(String publicId);
 }

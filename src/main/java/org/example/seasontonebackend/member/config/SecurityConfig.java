@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(a -> a.requestMatchers("/", "/error", "/health", "/actuator/**", "/ping",
                         "/member/create", "/member/doLogin", "/oauth2/**", "/login/oauth2/**",
-                        "/h2-console/**", "/api/location/preview",
+                        "/h2-console/**", "/api/location/preview", "/public/**",
                         "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll().anyRequest().authenticated())
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .oauth2Login(oauth2 -> oauth2

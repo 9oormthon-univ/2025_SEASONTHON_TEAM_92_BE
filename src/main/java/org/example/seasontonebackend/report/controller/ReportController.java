@@ -23,8 +23,14 @@ public class ReportController {
 
     @PostMapping("/report/create")
     public ResponseEntity<?> createReport(@RequestBody ReportRequestDto reportRequestDto, @AuthenticationPrincipal Member member) {
-        Long reportId = reportService.createReport(reportRequestDto, member);
-        return new ResponseEntity<>(reportId, HttpStatus.CREATED);
+        String publicId = reportService.createReport(reportRequestDto, member);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("publicId", publicId);
+        response.put("shareUrl", "/report/" + publicId);
+        
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
 
@@ -32,6 +38,27 @@ public class ReportController {
     public ResponseEntity<?> getReport(@PathVariable Long reportId, @AuthenticationPrincipal Member member) {
         try {
             ReportResponseDto reportResponseDto = reportService.getReport(reportId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", reportResponseDto);
+            response.put("message", "리포트를 조회했습니다.");
+            
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "리포트 조회 중 오류가 발생했습니다: " + e.getMessage());
+            
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 공개 리포트 조회 API (비회원도 접근 가능)
+    @GetMapping("/public/report/{publicId}")
+    public ResponseEntity<?> getPublicReport(@PathVariable String publicId) {
+        try {
+            ReportResponseDto reportResponseDto = reportService.getReportByPublicId(publicId);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
