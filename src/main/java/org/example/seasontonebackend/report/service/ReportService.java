@@ -127,7 +127,7 @@ public class ReportService {
         String dataRecency = String.format("평균 응답 %d일 전", averageResponseAgeDays);
 
         int reliabilityScore = calculateReliabilityScore(
-                neighborhoodMembers.size(), 
+                Math.max(neighborhoodMembers.size(), 1), // 최소 1명 보장
                 averageResponseAgeDays, 
                 (member.getGpsVerified() != null && member.getGpsVerified()), 
                 (member.getContractVerified() != null && member.getContractVerified())
@@ -137,7 +137,7 @@ public class ReportService {
                 .title(fullAddress + " 임대차 협상 리포트")
                 .generatedDate(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd")))
                 .dataPeriod("본 리포트는 최근 1개월 내 참여자 데이터와 공공 데이터를 기반으로 생성되었습니다.")
-                .participantCount(neighborhoodMembers.size())
+                .participantCount(Math.max(neighborhoodMembers.size(), 1)) // 최소 1명 보장
                 .dataRecency(dataRecency)
                 .reliabilityScore(reliabilityScore)
                 .build();
