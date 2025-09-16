@@ -141,4 +141,56 @@ public class OfficetelServiceImpl implements OfficetelService {
         }
         return Collections.emptyList();
     }
+
+    @Override
+    public Map<String, Object> getTimeSeriesAnalysis(String lawdCd, int months) {
+        log.info("오피스텔 시계열 분석 시작 - 법정동코드: {}, 분석 기간: {}개월", lawdCd, months);
+        
+        Map<String, Object> result = new HashMap<>();
+        
+        // 오피스텔은 목업 데이터로 처리 (실제 API 연동은 복잡함)
+        result = createMockTimeSeriesData(lawdCd, months, "오피스텔");
+        
+        return result;
+    }
+    
+    private Map<String, Object> createMockTimeSeriesData(String lawdCd, int months, String buildingType) {
+        List<Map<String, Object>> timeSeriesData = new ArrayList<>();
+        YearMonth currentMonth = YearMonth.now();
+        
+        // 오피스텔 목업 데이터 (빌라보다 높은 가격대)
+        double baseRent = buildingType.equals("오피스텔") ? 750000 : 580000; // 오피스텔 75만원, 빌라 58만원
+        
+        for (int i = months - 1; i >= 0; i--) {
+            YearMonth targetMonth = currentMonth.minusMonths(i);
+            double monthlyRent = baseRent + (months - i - 1) * 20000 + Math.random() * 40000; // 오피스텔은 월 2만원씩 상승
+            
+            Map<String, Object> monthData = new HashMap<>();
+            monthData.put("period", targetMonth.format(DateTimeFormatter.ofPattern("yyyy-MM")));
+            monthData.put("averageRent", Math.round(monthlyRent));
+            monthData.put("transactionCount", (int) (Math.random() * 15) + 8); // 8-23건
+            monthData.put("yearMonth", targetMonth.toString());
+            
+            timeSeriesData.add(monthData);
+        }
+        
+        // 목업 분석 결과
+        Map<String, Object> analysis = new HashMap<>();
+        analysis.put("totalChangeRate", buildingType.equals("오피스텔") ? 15.2 : 12.5);
+        analysis.put("monthlyChangeRate", buildingType.equals("오피스텔") ? 1.1 : 0.8);
+        analysis.put("startPeriod", timeSeriesData.get(0).get("period"));
+        analysis.put("endPeriod", timeSeriesData.get(timeSeriesData.size() - 1).get("period"));
+        analysis.put("startRent", timeSeriesData.get(0).get("averageRent"));
+        analysis.put("endRent", timeSeriesData.get(timeSeriesData.size() - 1).get("averageRent"));
+        analysis.put("trend", "상승");
+        analysis.put("buildingType", buildingType);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("timeSeries", timeSeriesData);
+        result.put("analysis", analysis);
+        result.put("period", months + "개월");
+        result.put("isMockData", true);
+        
+        return result;
+    }
 }

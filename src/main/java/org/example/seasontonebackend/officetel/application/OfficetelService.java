@@ -10,4 +10,5 @@ public interface OfficetelService {
     Map<String, List<OfficetelTransactionResponseDTO>> getOfficetelRentData(String lawdCd);
     List<OfficetelMarketDataResponseDTO> getJeonseMarketData(String lawdCd);
     List<OfficetelMarketDataResponseDTO> getMonthlyRentMarketData(String lawdCd);
+    Map<String, Object> getTimeSeriesAnalysis(String lawdCd, int months);
 }

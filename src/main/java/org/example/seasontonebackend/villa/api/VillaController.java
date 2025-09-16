@@ -1,11 +1,11 @@
-package org.example.seasontonebackend.officetel.api;
+package org.example.seasontonebackend.villa.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.seasontonebackend.member.domain.Member;
-import org.example.seasontonebackend.officetel.application.OfficetelService;
-import org.example.seasontonebackend.officetel.dto.OfficetelMarketDataResponseDTO;
-import org.example.seasontonebackend.officetel.dto.OfficetelTransactionResponseDTO;
+import org.example.seasontonebackend.villa.application.VillaService;
+import org.example.seasontonebackend.villa.dto.VillaMarketDataResponseDTO;
+import org.example.seasontonebackend.villa.dto.VillaTransactionResponseDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -18,37 +18,37 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/officetel")
+@RequestMapping("/api/villa")
 @RequiredArgsConstructor
 @Validated
-public class OfficetelController {
+public class VillaController {
 
-    private final OfficetelService officetelService;
+    private final VillaService villaService;
 
-    @GetMapping(value = "/rent-data", produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Map<String, Object>> getRentData(
+    @GetMapping(value = "/transactions", produces = "application/json; charset=UTF-8")
+    public ResponseEntity<Map<String, Object>> getTransactions(
             @RequestParam("lawdCd")
             @Pattern(regexp = "^[0-9]{5}$", message = "법정동코드는 5자리 숫자여야 합니다")
             String lawdCd,
             @AuthenticationPrincipal Member member) {
 
-        log.info("오피스텔 거래내역 조회 요청 - 사용자: {}, 법정동코드: {}", member.getEmail(), lawdCd);
+        log.info("빌라 거래내역 조회 요청 - 사용자: {}, 법정동코드: {}", member.getEmail(), lawdCd);
 
         try {
-            Map<String, List<OfficetelTransactionResponseDTO>> data = officetelService.getOfficetelRentData(lawdCd);
+            Map<String, List<VillaTransactionResponseDTO>> data = villaService.getVillaRentData(lawdCd);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("data", data);
-            response.put("message", "거래 내역을 성공적으로 조회했습니다.");
+            response.put("message", "빌라 거래 내역을 성공적으로 조회했습니다.");
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("거래내역 조회 실패 - 사용자: {}, 법정동코드: {}, 오류: {}", member.getEmail(), lawdCd, e.getMessage());
+            log.error("빌라 거래내역 조회 실패 - 사용자: {}, 법정동코드: {}, 오류: {}", member.getEmail(), lawdCd, e.getMessage());
 
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
-            errorResponse.put("message", "거래 내역 조회 중 오류가 발생했습니다.");
+            errorResponse.put("message", "빌라 거래 내역 조회 중 오류가 발생했습니다.");
             errorResponse.put("error", e.getMessage());
 
             return ResponseEntity.internalServerError().body(errorResponse);
@@ -62,23 +62,23 @@ public class OfficetelController {
             String lawdCd,
             @AuthenticationPrincipal Member member) {
 
-        log.info("전세 시세 조회 요청 - 사용자: {}, 법정동코드: {}", member.getEmail(), lawdCd);
+        log.info("빌라 전세 시세 조회 요청 - 사용자: {}, 법정동코드: {}", member.getEmail(), lawdCd);
 
         try {
-            List<OfficetelMarketDataResponseDTO> data = officetelService.getJeonseMarketData(lawdCd);
+            List<VillaMarketDataResponseDTO> data = villaService.getJeonseMarketData(lawdCd);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("data", data);
-            response.put("message", "전세 시세를 성공적으로 조회했습니다.");
+            response.put("message", "빌라 전세 시세를 성공적으로 조회했습니다.");
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("전세 시세 조회 실패 - 사용자: {}, 법정동코드: {}, 오류: {}", member.getEmail(), lawdCd, e.getMessage());
+            log.error("빌라 전세 시세 조회 실패 - 사용자: {}, 법정동코드: {}, 오류: {}", member.getEmail(), lawdCd, e.getMessage());
 
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
-            errorResponse.put("message", "전세 시세 조회 중 오류가 발생했습니다.");
+            errorResponse.put("message", "빌라 전세 시세 조회 중 오류가 발생했습니다.");
             errorResponse.put("error", e.getMessage());
 
             return ResponseEntity.internalServerError().body(errorResponse);
@@ -92,23 +92,23 @@ public class OfficetelController {
             String lawdCd,
             @AuthenticationPrincipal Member member) {
 
-        log.info("월세 시세 조회 요청 - 사용자: {}, 법정동코드: {}", member.getEmail(), lawdCd);
+        log.info("빌라 월세 시세 조회 요청 - 사용자: {}, 법정동코드: {}", member.getEmail(), lawdCd);
 
         try {
-            List<OfficetelMarketDataResponseDTO> data = officetelService.getMonthlyRentMarketData(lawdCd);
+            List<VillaMarketDataResponseDTO> data = villaService.getMonthlyRentMarketData(lawdCd);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("data", data);
-            response.put("message", "월세 시세를 성공적으로 조회했습니다.");
+            response.put("message", "빌라 월세 시세를 성공적으로 조회했습니다.");
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("월세 시세 조회 실패 - 사용자: {}, 법정동코드: {}, 오류: {}", member.getEmail(), lawdCd, e.getMessage());
+            log.error("빌라 월세 시세 조회 실패 - 사용자: {}, 법정동코드: {}, 오류: {}", member.getEmail(), lawdCd, e.getMessage());
 
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
-            errorResponse.put("message", "월세 시세 조회 중 오류가 발생했습니다.");
+            errorResponse.put("message", "빌라 월세 시세 조회 중 오류가 발생했습니다.");
             errorResponse.put("error", e.getMessage());
 
             return ResponseEntity.internalServerError().body(errorResponse);
@@ -123,10 +123,10 @@ public class OfficetelController {
             @RequestParam(value = "months", defaultValue = "24") int months,
             @AuthenticationPrincipal Member member) {
 
-        log.info("오피스텔 시계열 분석 요청 - 사용자: {}, 법정동코드: {}, 기간: {}개월", member.getEmail(), lawdCd, months);
+        log.info("빌라 시계열 분석 요청 - 사용자: {}, 법정동코드: {}, 기간: {}개월", member.getEmail(), lawdCd, months);
 
         try {
-            Map<String, Object> timeSeriesData = officetelService.getTimeSeriesAnalysis(lawdCd, months);
+            Map<String, Object> timeSeriesData = villaService.getTimeSeriesAnalysis(lawdCd, months);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
