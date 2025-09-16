@@ -10,6 +10,7 @@ import java.util.List;
 @Builder
 public class DiagnosisQuestionsResponseDTO {
     private List<Category> categories;
+    private String responseVersion = "enhanced";
 
     @Getter
     @Setter
@@ -31,5 +32,8 @@ public class DiagnosisQuestionsResponseDTO {
         private Long questionId;
         private String questionText;
         private String subText;
+        private String measurementContext;
+        private List<ExperienceOptionDTO> experienceOptions;
+        private LegalReferenceDTO legalReferences;
     }
 }

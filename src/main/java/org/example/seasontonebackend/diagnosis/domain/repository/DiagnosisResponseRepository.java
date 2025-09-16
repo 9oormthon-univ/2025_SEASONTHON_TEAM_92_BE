@@ -11,6 +11,7 @@ import java.util.List;
 @Repository
 public interface DiagnosisResponseRepository extends JpaRepository<DiagnosisResponse, Long> {
     List<DiagnosisResponse> findByUserId(Long userId);
+    List<DiagnosisResponse> findByUserIdIn(List<Long> userIds);
 
     @Modifying
     @Query("DELETE FROM DiagnosisResponse dr WHERE dr.userId = :userId")
