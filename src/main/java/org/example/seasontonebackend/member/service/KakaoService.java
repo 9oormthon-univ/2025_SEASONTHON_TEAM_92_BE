@@ -89,8 +89,8 @@ public class KakaoService extends SimpleUrlAuthenticationSuccessHandler {
         }
 
         // 이메일이 null일 경우 providerId를 사용
-        String email = member.getEmail() != null ? member.getEmail() : member.getProviderId() + "@kakao.local";
-        String jwtToken = jwtTokenProvider.createToken(member.getId(), email, member.getRole().toString());
+        String memberEmail = member.getEmail() != null ? member.getEmail() : member.getProviderId() + "@kakao.local";
+        String jwtToken = jwtTokenProvider.createToken(member.getId(), memberEmail, member.getRole().toString());
 
         String redirectUrl = UriComponentsBuilder.fromUriString(frontendRedirectUrl)
                 .queryParam("token", jwtToken)
