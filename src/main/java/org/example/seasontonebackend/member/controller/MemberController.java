@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -150,6 +151,17 @@ public class MemberController {
             
             return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    // OAuth 로그인 엔드포인트 추가
+    @GetMapping("/oauth2/authorization/google")
+    public RedirectView googleLogin() {
+        return new RedirectView("/oauth2/authorization/google");
+    }
+
+    @GetMapping("/oauth2/authorization/kakao") 
+    public RedirectView kakaoLogin() {
+        return new RedirectView("/oauth2/authorization/kakao");
     }
 
 }
