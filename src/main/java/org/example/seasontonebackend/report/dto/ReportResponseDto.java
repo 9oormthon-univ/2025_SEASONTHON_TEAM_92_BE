@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Builder
@@ -32,6 +33,9 @@ public class ReportResponseDto {
 
     // 7. 분쟁 해결 가이드 (기획안 STEP 4-3)
     private DisputeGuideDto disputeGuide;
+
+    // 8. 스마트 진단 데이터 (프리미엄 전용)
+    private Map<String, Object> smartDiagnosisData;
 
     // --- 각 DTO의 상세 구조 ---
 

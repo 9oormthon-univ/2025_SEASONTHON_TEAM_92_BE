@@ -8,6 +8,7 @@ import org.example.seasontonebackend.report.domain.Report;
 import org.example.seasontonebackend.report.dto.ReportRequestDto;
 import org.example.seasontonebackend.report.dto.ReportResponseDto;
 import org.example.seasontonebackend.report.repository.ReportRepository;
+import org.example.seasontonebackend.smartdiagnosis.service.SmartDiagnosisService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +27,7 @@ public class ReportService {
     private final ReportRepository reportRepository;
     private final MemberRepository memberRepository;
     private final DiagnosisResponseRepository diagnosisResponseRepository;
+    private final SmartDiagnosisService smartDiagnosisService;
     
     // 동시 리포트 생성을 위한 스레드 풀 (최대 10개 동시 처리)
     private final ExecutorService executorService = Executors.newFixedThreadPool(10);
@@ -33,10 +35,11 @@ public class ReportService {
     // JSON 변환을 위한 ObjectMapper
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public ReportService(ReportRepository reportRepository, MemberRepository memberRepository, DiagnosisResponseRepository diagnosisResponseRepository) {
+    public ReportService(ReportRepository reportRepository, MemberRepository memberRepository, DiagnosisResponseRepository diagnosisResponseRepository, SmartDiagnosisService smartDiagnosisService) {
         this.reportRepository = reportRepository;
         this.memberRepository = memberRepository;
         this.diagnosisResponseRepository = diagnosisResponseRepository;
+        this.smartDiagnosisService = smartDiagnosisService;
     }
 
     @Transactional
@@ -117,6 +120,14 @@ public class ReportService {
 
         List<ReportResponseDto.NegotiationCardDto> negotiationCards = buildNegotiationCards(subjectiveMetrics, report.getUserInput(), report.getReportType());
 
+        // 스마트 진단 데이터 가져오기
+        Map<String, Object> smartDiagnosisData = null;
+        try {
+            smartDiagnosisData = smartDiagnosisService.getSmartDiagnosisSummary(member);
+        } catch (Exception e) {
+            System.err.println("스마트 진단 데이터 조회 실패: " + e.getMessage());
+        }
+
         String dong = member.getDong() != null ? member.getDong().trim() : "";
         String building = member.getBuilding() != null ? member.getBuilding().trim() : "";
         
@@ -179,6 +190,7 @@ public class ReportService {
                 .negotiationCards(negotiationCards)
                 .policyInfos(buildPolicyInfos(report.getReportType()))
                 .disputeGuide(buildDisputeGuide(report.getReportType()))
+                .smartDiagnosisData(smartDiagnosisData)
                 .build();
     }
 
@@ -190,6 +202,14 @@ public class ReportService {
         ReportResponseDto.SubjectiveMetricsDto subjectiveMetrics = buildSubjectiveMetrics(member, neighborhoodMembers, neighborhoodResponses);
 
         List<ReportResponseDto.NegotiationCardDto> negotiationCards = buildNegotiationCards(subjectiveMetrics, null, "free");
+
+        // 스마트 진단 데이터 가져오기
+        Map<String, Object> smartDiagnosisData = null;
+        try {
+            smartDiagnosisData = smartDiagnosisService.getSmartDiagnosisSummary(member);
+        } catch (Exception e) {
+            System.err.println("스마트 진단 데이터 조회 실패: " + e.getMessage());
+        }
 
         String fullAddress = (member.getDong() != null ? member.getDong() : "") + " " + (member.getBuilding() != null ? member.getBuilding() : "");
         String conditions = String.format("보증금 %s / 월세 %s / 관리비 %s",
@@ -232,6 +252,7 @@ public class ReportService {
                 .negotiationCards(negotiationCards)
                 .policyInfos(buildPolicyInfos("free"))
                 .disputeGuide(buildDisputeGuide("free"))
+                .smartDiagnosisData(smartDiagnosisData)
                 .build();
     }
 
