@@ -113,13 +113,13 @@ public class OfficetelServiceImpl implements OfficetelService {
     }
 
     private List<PublicApiResponseDTO.Item> callApiAndParseXml(String lawdCd, String dealYmd) {
-        // serviceKey는 이미 URL 인코딩되어 있으므로 그대로 사용
+        // UriComponentsBuilder가 자동으로 URL 인코딩 수행
         URI uri = UriComponentsBuilder.fromUriString(API_URL)
                 .queryParam("serviceKey", serviceKey)
                 .queryParam("LAWD_CD", lawdCd)
                 .queryParam("DEAL_YMD", dealYmd)
                 .queryParam("numOfRows", MAX_ROWS_PER_REQUEST)
-                .build(false)
+                .build()
                 .toUri();
 
         log.debug("API 요청 URL: {}", uri);
