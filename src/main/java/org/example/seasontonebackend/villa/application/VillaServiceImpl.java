@@ -29,8 +29,8 @@ public class VillaServiceImpl implements VillaService {
     private static final int MONTHS_TO_FETCH = 3;
     private static final int MAX_ROWS_PER_REQUEST = 100;
 
-    // 🔥 제공받은 인증키로 하드코딩
-    private String serviceKey = "e20aoTYyOLpe4UPR3I70w+QLG5abe/L7o0QOJ4bOpnyRTZcTFrYAKb/MVp+/lNY8IMzLLdvjvf6BRGb7Tpa2OA==";
+    @Value("${officetel.api.service-key}")
+    private String serviceKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final XmlMapper xmlMapper = new XmlMapper();
