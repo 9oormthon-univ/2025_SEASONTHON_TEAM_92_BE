@@ -23,14 +23,14 @@ import java.util.stream.Collectors;
 @Service
 public class VillaServiceImpl implements VillaService {
 
-    // 🔥 빌라 API URL로 변경
-    private static final String API_URL = "http://openapi.molit.go.kr:8081/OpenAPI_ToolInstallPackage/service/RentHouseInfoService/getRentHouseInfo";
+    // 🔥 빌라 API URL로 변경 (올바른 엔드포인트)
+    private static final String API_URL = "https://apis.data.go.kr/1613000/RTMSDataSvcSHRent/getRTMSDataSvcSHRent";
     private static final String DATE_FORMAT = "%d-%02d-%02d";
     private static final int MONTHS_TO_FETCH = 3;
     private static final int MAX_ROWS_PER_REQUEST = 100;
 
     // 🔥 제공받은 인증키로 하드코딩
-    private String serviceKey = "59afac38869bae8eb4bf96349cc3f88340e584d290b52c74a600c4053b856212";
+    private String serviceKey = "e20aoTYyOLpe4UPR3I70w+QLG5abe/L7o0QOJ4bOpnyRTZcTFrYAKb/MVp+/lNY8IMzLLdvjvf6BRGb7Tpa2OA==";
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final XmlMapper xmlMapper = new XmlMapper();

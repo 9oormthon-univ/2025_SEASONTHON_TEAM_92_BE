@@ -55,7 +55,7 @@ oauth2:
 # 오피스텔 API 설정
 officetel:
   api:
-    service-key: ${OFFICETEL_API_SERVICE_KEY:59afac38869bae8eb4bf96349cc3f88340e584d290b52c74a600c4053b856212}
+    service-key: ${OFFICETEL_API_SERVICE_KEY:e20aoTYyOLpe4UPR3I70w+QLG5abe/L7o0QOJ4bOpnyRTZcTFrYAKb/MVp+/lNY8IMzLLdvjvf6BRGb7Tpa2OA==}
     base-url: https://apis.data.go.kr/1613000/RTMSDataSvcOffiRent/getRTMSDataSvcOffiRent
     request:
       max-rows: 100
