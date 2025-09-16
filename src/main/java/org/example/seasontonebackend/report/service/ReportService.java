@@ -64,8 +64,16 @@ public class ReportService {
 
         List<ReportResponseDto.NegotiationCardDto> negotiationCards = buildNegotiationCards(subjectiveMetrics, null);
 
-        String fullAddress = (member.getDong() != null ? member.getDong() : "") + " " + (member.getBuilding() != null ? member.getBuilding() : "");
-        System.out.println("DEBUG - Member info: dong=" + member.getDong() + ", building=" + member.getBuilding() + ", fullAddress=" + fullAddress);
+        String dong = member.getDong() != null ? member.getDong().trim() : "";
+        String building = member.getBuilding() != null ? member.getBuilding().trim() : "";
+        String fullAddress = (dong + " " + building).trim();
+        
+        // 한글 인코딩 문제 해결을 위한 안전한 처리
+        if (fullAddress.isEmpty() || fullAddress.equals(" ")) {
+            fullAddress = "주소 정보 없음";
+        }
+        
+        System.out.println("DEBUG - Member info: dong=" + dong + ", building=" + building + ", fullAddress=" + fullAddress);
         String conditions = String.format("보증금 %s / 월세 %s / 관리비 %s",
                 member.getSecurity() != null ? member.getSecurity().toString() : "미입력",
                 member.getRent() != null ? member.getRent().toString() : "미입력",
