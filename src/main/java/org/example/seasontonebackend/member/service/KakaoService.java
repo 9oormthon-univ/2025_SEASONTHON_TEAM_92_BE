@@ -59,17 +59,23 @@ public class KakaoService extends SimpleUrlAuthenticationSuccessHandler {
         boolean isNewUser = false;
 
         if (member == null) {
-            Optional<Member> existingMemberOpt = memberRepository.findByEmail(email);
-            if (existingMemberOpt.isPresent()) {
-                member = existingMemberOpt.get();
-                member.setProviderId(providerId);
-                member.setSocialType(socialType);
-                memberRepository.save(member);
-            } else {
+            // 이메일이 있는 경우에만 중복 계정 확인
+            if (email != null && !email.isEmpty()) {
+                Optional<Member> existingMemberOpt = memberRepository.findByEmail(email);
+                if (existingMemberOpt.isPresent()) {
+                    member = existingMemberOpt.get();
+                    member.setProviderId(providerId);
+                    member.setSocialType(socialType);
+                    memberRepository.save(member);
+                }
+            }
+            
+            // 기존 계정이 없으면 새로 생성
+            if (member == null) {
                 isNewUser = true;
                 member = Member.builder()
-                        .email(email)
-                        .name(name)
+                        .email(email) // null일 수 있음
+                        .name(name != null ? name : "카카오사용자") // 닉네임이 없으면 기본값
                         .socialType(socialType)
                         .providerId(providerId)
                         .role(Role.User)
