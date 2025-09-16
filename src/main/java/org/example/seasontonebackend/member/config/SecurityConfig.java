@@ -1,7 +1,9 @@
 package org.example.seasontonebackend.member.config;
 
-
 import org.example.seasontonebackend.member.auth.JwtTokenFilter;
+import org.example.seasontonebackend.member.repository.MemberRepository;
+import org.example.seasontonebackend.member.service.GoogleService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,12 +20,17 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
 @Configuration
-
 public class SecurityConfig {
-    private final JwtTokenFilter jwtTokenFilter;
 
-    public SecurityConfig(JwtTokenFilter jwtTokenFilter) {
-        this.jwtTokenFilter = jwtTokenFilter;
+    private final MemberRepository memberRepository;
+    private final GoogleService googleService;
+
+    @Value("${jwt.secret}")
+    private String secretKey;
+
+    public SecurityConfig(MemberRepository memberRepository, GoogleService googleService) {
+        this.memberRepository = memberRepository;
+        this.googleService = googleService;
     }
 
     @Bean
@@ -31,33 +38,38 @@ public class SecurityConfig {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
-
     @Bean
-    public SecurityFilterChain myfilter (HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain myfilter(HttpSecurity httpSecurity) throws Exception {
+        JwtTokenFilter jwtTokenFilter = new JwtTokenFilter(memberRepository, secretKey);
+
         return httpSecurity
                 .cors(cors -> cors.configurationSource(configurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
-                .httpBasic((AbstractHttpConfigurer::disable))
-                .sessionManagement(s->s.sessionCreationPolicy((SessionCreationPolicy.STATELESS)))
-                .authorizeHttpRequests(a->a.requestMatchers("/ping", "/member/create", "/member/doLogin", "/member/google/doLogin", "/member/kakao/doLogin").permitAll().anyRequest().authenticated())
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(a -> a.requestMatchers("/", "/error", "/health", "/actuator/**", "/ping",
+                        "/member/create", "/member/doLogin", "/oauth2/**", "/login/oauth2/**",
+                        "/h2-console/**", "/api/location/preview",
+                        "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll().anyRequest().authenticated())
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
+                .oauth2Login(o -> o.successHandler(googleService))
                 .build();
     }
 
-
     @Bean
-    public CorsConfigurationSource configurationSource(){
+    public CorsConfigurationSource configurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-//        configuration.setAllowedOrigins(Arrays.asList("Https://localhost:3000"));
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("*"));
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3000",
+                "https://rental-lovat-theta.vercel.app"
+        ));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
-
 }

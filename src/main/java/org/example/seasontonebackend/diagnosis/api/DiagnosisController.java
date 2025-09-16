@@ -1,54 +1,104 @@
 package org.example.seasontonebackend.diagnosis.api;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.example.seasontonebackend.member.domain.Member;
+import org.example.seasontonebackend.diagnosis.application.DiagnosisService;
+import org.example.seasontonebackend.diagnosis.dto.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import org.example.seasontonebackend.member.domain.Member;
-import org.example.seasontonebackend.diagnosis.application.DiagnosisService;
-import org.example.seasontonebackend.diagnosis.dto.DiagnosisRequestDTO;
-
+import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestController
-@RequestMapping("/api/diagnosis")
+@RequestMapping("/api/v1/diagnosis")
 @RequiredArgsConstructor
 public class DiagnosisController {
 
     private final DiagnosisService diagnosisService;
 
-    @PostMapping
-    public ResponseEntity<?> createOrUpdateDiagnosis(@RequestBody DiagnosisRequestDTO request,
-                                                     @AuthenticationPrincipal Member member) {
+    @GetMapping("/questions")
+    public ResponseEntity<Map<String, Object>> getQuestions() {
         try {
-            var diagnosis = diagnosisService.createOrUpdateDiagnosis(member.getId(), request);
-            return ResponseEntity.ok(Map.of("success", true, "data", diagnosis));
+            DiagnosisQuestionsResponseDTO data = diagnosisService.getQuestions();
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", data);
+            response.put("message", "진단 질문을 조회했습니다.");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", e.getMessage()));
+            log.error("진단 질문 조회 실패: {}", e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(errorResponse);
         }
     }
 
-    @GetMapping("/my")
-    public ResponseEntity<?> getMyDiagnosis(@AuthenticationPrincipal Member member) {
+    @PostMapping("/responses")
+    public ResponseEntity<Map<String, Object>> submitResponses(
+            @RequestBody DiagnosisRequestDTO request,
+            @AuthenticationPrincipal Member member) {
         try {
-            var diagnosis = diagnosisService.getMyDiagnosis(member.getId());
-            return ResponseEntity.ok(Map.of("success", true, "data", diagnosis));
+            DiagnosisSubmissionResponseDTO data = diagnosisService.submitResponses(member, request);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", data);
+            response.put("message", "진단 응답이 저장되었습니다.");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", e.getMessage()));
+            log.error("진단 응답 제출 실패 - 사용자: {}, 오류: {}", member.getEmail(), e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(errorResponse);
         }
     }
 
-    @GetMapping("/has-diagnosis")
-    public ResponseEntity<?> hasInitialDiagnosis(@AuthenticationPrincipal Member member) {
+    @PostMapping("/responses/bulk")
+    public ResponseEntity<Map<String, Object>> submitBulkResponses(
+            @RequestBody java.util.List<DiagnosisRequestDTO> requests,
+            @AuthenticationPrincipal Member member) {
         try {
-            var hasDiagnosis = diagnosisService.hasInitialDiagnosis(member.getId());
-            return ResponseEntity.ok(Map.of("success", true, "data", hasDiagnosis));
+            // 첫 번째 요청만 사용 (프론트엔드에서 배열로 보내지만 실제로는 하나의 요청)
+            DiagnosisRequestDTO request = requests.get(0);
+            DiagnosisSubmissionResponseDTO data = diagnosisService.submitResponses(member, request);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", data);
+            response.put("message", "진단 응답이 일괄 저장되었습니다.");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("success", false, "message", e.getMessage()));
+            log.error("진단 응답 일괄 제출 실패 - 사용자: {}, 오류: {}", member.getEmail(), e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+
+    @GetMapping("/result")
+    public ResponseEntity<Map<String, Object>> getResult(@AuthenticationPrincipal Member member) {
+        try {
+            DiagnosisResultResponseDTO data = diagnosisService.getResult(member);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", data);
+            response.put("message", "진단 결과를 조회했습니다.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("진단 결과 조회 실패 - 사용자: {}, 오류: {}", member.getEmail(), e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(errorResponse);
         }
     }
 }

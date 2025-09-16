@@ -6,9 +6,9 @@ import io.jsonwebtoken.Jwts;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.example.seasontonebackend.member.domain.Member;
 import org.example.seasontonebackend.member.repository.MemberRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,27 +18,29 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
+@Slf4j
 public class JwtTokenFilter extends GenericFilter {
-    @Value("${jwt.secret}")
-    private String secretKey;
-
+    private final String secretKey;
     private final MemberRepository memberRepository;
 
-    public JwtTokenFilter(MemberRepository memberRepository) {
+    // 생성자를 통해 secretKey와 memberRepository를 주입받음
+    public JwtTokenFilter(MemberRepository memberRepository, String secretKey) {
         this.memberRepository = memberRepository;
+        this.secretKey = secretKey;
     }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
+
+        log.info(">>> JwtTokenFilter: Received request for URI: {}", httpServletRequest.getRequestURI());
+
         String token = httpServletRequest.getHeader("Authorization");
         try {
             if (token != null ) {
@@ -58,23 +60,33 @@ public class JwtTokenFilter extends GenericFilter {
                 Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, jwtToken, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                // Member 기반 Authentication으로 교체
                 String email = claims.getSubject();
+                log.info("JWT Token parsed - Email: {}", email);
+                log.info("JWT Token claims: {}", claims);
+                
                 Member member = memberRepository.findByEmail(email).orElse(null);
                 if (member != null) {
+                    log.info("Member found: {} (ID: {})", member.getEmail(), member.getId());
                     Authentication memberAuth = new UsernamePasswordAuthenticationToken(member, jwtToken, member.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(memberAuth);
+                    log.info("Authentication set successfully for member: {}", member.getEmail());
+                } else {
+                    // Member not found, clear authentication to prevent null pointer exceptions
+                    SecurityContextHolder.clearContext();
+                    log.warn("Member not found for email: {}. This usually means the user was deleted from the database but the JWT token is still valid.", email);
+                    // Return 401 Unauthorized when member is not found
+                    httpServletResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    httpServletResponse.setContentType("application/json;charset=UTF-8");
+                    httpServletResponse.getWriter().write("{\"success\":false,\"message\":\"사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.\"}");
+                    return;
                 }
-
-
             }
             chain.doFilter(request, response);
-        } catch (io.jsonwebtoken.JwtException | IllegalArgumentException e) { // JWT 문제만 401로 반환
+        } catch (io.jsonwebtoken.JwtException | IllegalArgumentException e) {
             e.printStackTrace();
             httpServletResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
             httpServletResponse.setContentType("application/json;char");
-            httpServletResponse.getWriter().write("Invalid token");}
+            httpServletResponse.getWriter().write("Invalid token");
+        }
     }
-
-
 }

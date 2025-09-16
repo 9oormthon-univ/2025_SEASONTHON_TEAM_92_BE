@@ -1,25 +1,118 @@
 package org.example.seasontonebackend.mission.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.example.seasontonebackend.mission.domain.entity.MissionCategory;
+import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
-@Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class MissionResponseDTO {
-    private Long missionId;
-    private String title;
-    private MissionCategory category;
-    private Boolean isActive;
-    private LocalDateTime expiresAt;
-    private Map<String, Object> questions;  // JSON 그대로 반환
-    private Boolean hasParticipated;  // 사용자 참여 여부
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class CurrentMission {
+        private Long missionId;
+        private String category;
+        private String title;
+        private String description;
+        private LocalDate startDate;
+        private LocalDate endDate;
+        private List<MissionQuestion> questions;
+        private Integer participationCount;
+        private Boolean userParticipated;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class MissionQuestion {
+        private Long questionId;
+        private String questionText;
+        private String questionType;
+        private List<String> options;
+        private Integer orderNumber;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class MissionResult {
+        private Integer userScore;
+        private Integer maxScore;
+        private String category;
+        private ComparisonData buildingComparison;
+        private ComparisonData neighborhoodComparison;
+        private List<String> insights;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class MissionSummary {
+        private Long missionId;
+        private String category;
+        private String title;
+        private LocalDate startDate;
+        private LocalDate endDate;
+        private Boolean isActive;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class MissionDetail {
+        private Long missionId;
+        private String category;
+        private String title;
+        private String description;
+        private LocalDate startDate;
+        private LocalDate endDate;
+        private Boolean isActive;
+        private List<MissionQuestion> questions;
+        private java.time.LocalDateTime createdAt;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ComparisonData {
+        private Double average;
+        private Integer userRank;
+        private Integer totalParticipants;
+        private String comparisonText;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ApiResponse<T> {
+        private Boolean success;
+        private T data;
+        private String message;
+
+        public static <T> ApiResponse<T> success(T data) {
+            return new ApiResponse<>(true, data, null);
+        }
+
+        public static <T> ApiResponse<T> success(T data, String message) {
+            return new ApiResponse<>(true, data, message);
+        }
+
+        public static <T> ApiResponse<T> error(String message) {
+            return new ApiResponse<>(false, null, message);
+        }
+    }
 }
