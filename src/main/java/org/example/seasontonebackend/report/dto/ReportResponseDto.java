@@ -9,6 +9,9 @@ import java.util.List;
 @Builder
 public class ReportResponseDto {
 
+    // 리포트 타입 (무료/프리미엄)
+    private String reportType;
+
     // 1. 리포트 헤더 (기획안)
     private ReportHeaderDto header;
 
@@ -83,6 +86,11 @@ public class ReportResponseDto {
         private int priority; // 1순위, 2순위...
         private String title; // "시설 개선 요구", "월세 조정 요구"
         private String recommendationScript; // "수압 문제는 우리 건물 평균 대비..."
+        
+        // 프리미엄 전용 필드들
+        private String successProbability; // 성공 확률 (예: "85%")
+        private String alternativeStrategy; // 대체 전략
+        private String expertTip; // 전문가 팁
     }
 
     @Getter
@@ -91,6 +99,11 @@ public class ReportResponseDto {
         private String title; // "청년 월세 특별지원"
         private String description; // "국토부, 신청 조건..."
         private String link; // 신청 링크
+        
+        // 프리미엄 전용 필드들
+        private Boolean isEligible; // 자동 매칭 결과 (true/false)
+        private String applicationDeadline; // 신청 마감일
+        private List<String> requiredDocuments; // 필요 서류 목록
     }
 
     @Getter
@@ -99,5 +112,28 @@ public class ReportResponseDto {
         private String relatedLaw; // "주택임대차보호법 ○○조 (임대인 수선 의무)"
         private String committeeInfo; // "서울서부 임대차분쟁조정위원회 연락처/링크"
         private String formDownloadLink; // "수선 요구서 템플릿 다운로드 링크"
+        
+        // 프리미엄 전용 필드들
+        private List<DisputeRoadmapStepDto> disputeRoadmap; // 분쟁 해결 로드맵
+        private ExpertConsultationDto expertConsultation; // 전문가 상담 정보
+    }
+    
+    @Getter
+    @Builder
+    public static class DisputeRoadmapStepDto {
+        private int step; // 단계 번호
+        private String title; // 단계 제목
+        private String description; // 단계 설명
+        private String estimatedTime; // 예상 소요 시간
+        private String cost; // 비용
+    }
+    
+    @Getter
+    @Builder
+    public static class ExpertConsultationDto {
+        private boolean available; // 상담 가능 여부
+        private int price; // 상담 비용
+        private String duration; // 상담 시간
+        private String contactInfo; // 연락처
     }
 }

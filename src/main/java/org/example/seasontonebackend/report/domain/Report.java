@@ -31,6 +31,10 @@ public class Report {
     // 리포트 생성 시 사용자가 입력한 텍스트
     @Column(name = "user_input", columnDefinition = "TEXT")
     private String userInput;
+    
+    // 리포트 타입 ('free' 또는 'premium')
+    @Column(name = "report_type")
+    private String reportType;
 
     @PrePersist
     public void generatePublicId() {

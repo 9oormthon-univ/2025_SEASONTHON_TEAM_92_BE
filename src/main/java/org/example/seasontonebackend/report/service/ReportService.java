@@ -31,7 +31,8 @@ public class ReportService {
     public String createReport(ReportRequestDto reportRequestDto, Member member) {
         Report report = Report.builder()
                 .member(member)
-                .userInput(null) // 협상 요구사항 제거
+                .userInput(reportRequestDto.getReportContent()) // 협상 요구사항 저장
+                .reportType(reportRequestDto.getReportType()) // 리포트 타입 저장
                 .build();
 
         reportRepository.save(report);
@@ -62,7 +63,7 @@ public class ReportService {
 
         ReportResponseDto.SubjectiveMetricsDto subjectiveMetrics = buildSubjectiveMetrics(member, neighborhoodMembers, neighborhoodResponses);
 
-        List<ReportResponseDto.NegotiationCardDto> negotiationCards = buildNegotiationCards(subjectiveMetrics, null);
+        List<ReportResponseDto.NegotiationCardDto> negotiationCards = buildNegotiationCards(subjectiveMetrics, report.getUserInput(), report.getReportType());
 
         String dong = member.getDong() != null ? member.getDong().trim() : "";
         String building = member.getBuilding() != null ? member.getBuilding().trim() : "";
@@ -119,12 +120,13 @@ public class ReportService {
                 .build();
 
         return ReportResponseDto.builder()
+                .reportType(report.getReportType() != null ? report.getReportType() : "free")
                 .header(header)
                 .contractSummary(contractSummary)
                 .subjectiveMetrics(subjectiveMetrics)
                 .negotiationCards(negotiationCards)
-                .policyInfos(buildStaticPolicyInfos())
-                .disputeGuide(buildStaticDisputeGuide())
+                .policyInfos(buildPolicyInfos(report.getReportType()))
+                .disputeGuide(buildDisputeGuide(report.getReportType()))
                 .build();
     }
 
@@ -135,7 +137,7 @@ public class ReportService {
 
         ReportResponseDto.SubjectiveMetricsDto subjectiveMetrics = buildSubjectiveMetrics(member, neighborhoodMembers, neighborhoodResponses);
 
-        List<ReportResponseDto.NegotiationCardDto> negotiationCards = buildNegotiationCards(subjectiveMetrics, null);
+        List<ReportResponseDto.NegotiationCardDto> negotiationCards = buildNegotiationCards(subjectiveMetrics, null, "free");
 
         String fullAddress = (member.getDong() != null ? member.getDong() : "") + " " + (member.getBuilding() != null ? member.getBuilding() : "");
         String conditions = String.format("보증금 %s / 월세 %s / 관리비 %s",
@@ -181,8 +183,9 @@ public class ReportService {
                 .build();
     }
 
-    private List<ReportResponseDto.NegotiationCardDto> buildNegotiationCards(ReportResponseDto.SubjectiveMetricsDto subjectiveMetrics, String userInput) {
+    private List<ReportResponseDto.NegotiationCardDto> buildNegotiationCards(ReportResponseDto.SubjectiveMetricsDto subjectiveMetrics, String userInput, String reportType) {
         List<ReportResponseDto.NegotiationCardDto> cards = new ArrayList<>();
+        boolean isPremium = "premium".equals(reportType);
 
         List<ReportResponseDto.ScoreComparison> sortedScores = subjectiveMetrics.getCategoryScores().stream()
                 .filter(s -> s.getMyScore() < s.getNeighborhoodAverage()) 
@@ -195,21 +198,21 @@ public class ReportService {
             String script = String.format("우리 집의 '%s' 만족도 점수(%.1f점)는 동네 평균(%.1f점)보다 낮습니다. 이 데이터를 근거로 개선을 요구하거나 월세 조정을 제안해볼 수 있습니다.",
                     score.getCategory(), score.getMyScore(), score.getNeighborhoodAverage());
 
-            cards.add(ReportResponseDto.NegotiationCardDto.builder()
+            ReportResponseDto.NegotiationCardDto.NegotiationCardDtoBuilder cardBuilder = ReportResponseDto.NegotiationCardDto.builder()
                     .priority(priority++)
                     .title(title)
-                    .recommendationScript(script)
-                    .build());
-        }
+                    .recommendationScript(script);
 
-        // 협상 요구사항 관련 코드 제거
-        // if (userInput != null && !userInput.isEmpty()) {
-        //     cards.add(ReportResponseDto.NegotiationCardDto.builder()
-        //             .priority(priority)
-        //             .title("사용자 직접 입력 내용")
-        //             .recommendationScript(String.format("추가로, '%s' 문제에 대해 논의가 필요합니다.", userInput))
-        //             .build());
-        // }
+            // 프리미엄 리포트인 경우 추가 필드들 설정
+            if (isPremium) {
+                cardBuilder
+                    .successProbability(generateSuccessProbability(score))
+                    .alternativeStrategy(generateAlternativeStrategy(score))
+                    .expertTip(generateExpertTip(score));
+            }
+
+            cards.add(cardBuilder.build());
+        }
 
         return cards;
     }
@@ -335,6 +338,53 @@ public class ReportService {
 
     // --- 정적 데이터 생성을 위한 헬퍼 메소드 ---
 
+    private List<ReportResponseDto.PolicyInfoDto> buildPolicyInfos(String reportType) {
+        boolean isPremium = "premium".equals(reportType);
+        
+        List<ReportResponseDto.PolicyInfoDto> policies = new ArrayList<>();
+        
+        // 청년 월세 특별지원
+        ReportResponseDto.PolicyInfoDto.PolicyInfoDtoBuilder policy1 = ReportResponseDto.PolicyInfoDto.builder()
+                .title("청년 월세 특별지원")
+                .description("국토부에서 제공하는 청년층 월세 지원 정책")
+                .link("https://www.molit.go.kr");
+        
+        if (isPremium) {
+            policy1.isEligible(true)
+                   .applicationDeadline("2025.12.31")
+                   .requiredDocuments(Arrays.asList("신분증", "소득증명서", "임대차계약서"));
+        }
+        policies.add(policy1.build());
+        
+        // 서울시 청년 월세 지원금
+        ReportResponseDto.PolicyInfoDto.PolicyInfoDtoBuilder policy2 = ReportResponseDto.PolicyInfoDto.builder()
+                .title("서울시 청년 월세 지원금")
+                .description("서울 거주 청년을 위한 월세 지원금")
+                .link("https://youth.seoul.go.kr");
+        
+        if (isPremium) {
+            policy2.isEligible(true)
+                   .applicationDeadline("2025.11.30")
+                   .requiredDocuments(Arrays.asList("주민등록등본", "소득증명서", "임대차계약서", "통장사본"));
+        }
+        policies.add(policy2.build());
+        
+        // 전세보증금 반환보증 (HUG)
+        ReportResponseDto.PolicyInfoDto.PolicyInfoDtoBuilder policy3 = ReportResponseDto.PolicyInfoDto.builder()
+                .title("전세보증금 반환보증 (HUG)")
+                .description("전세보증금 반환을 보장하는 제도")
+                .link("https://www.hug.or.kr");
+        
+        if (isPremium) {
+            policy3.isEligible(false)
+                   .applicationDeadline("상시")
+                   .requiredDocuments(Arrays.asList("전세계약서", "신분증", "소득증명서"));
+        }
+        policies.add(policy3.build());
+        
+        return policies;
+    }
+
     private List<ReportResponseDto.PolicyInfoDto> buildStaticPolicyInfos() {
         return Arrays.asList(
                 ReportResponseDto.PolicyInfoDto.builder()
@@ -355,11 +405,110 @@ public class ReportService {
         );
     }
 
+    private ReportResponseDto.DisputeGuideDto buildDisputeGuide(String reportType) {
+        boolean isPremium = "premium".equals(reportType);
+        
+        ReportResponseDto.DisputeGuideDto.DisputeGuideDtoBuilder builder = ReportResponseDto.DisputeGuideDto.builder()
+                .relatedLaw("주택임대차보호법 제6조의2 (임대인의 수선유지 의무)")
+                .committeeInfo("서울서부 임대차분쟁조정위원회 (연락처: 02-123-4567)")
+                .formDownloadLink("#"); // Placeholder link
+        
+        if (isPremium) {
+            // 분쟁 해결 로드맵
+            List<ReportResponseDto.DisputeRoadmapStepDto> roadmap = Arrays.asList(
+                ReportResponseDto.DisputeRoadmapStepDto.builder()
+                    .step(1)
+                    .title("내용증명 발송")
+                    .description("임대인에게 수선 요구 내용증명 발송")
+                    .estimatedTime("1-2주")
+                    .cost("3,000원")
+                    .build(),
+                ReportResponseDto.DisputeRoadmapStepDto.builder()
+                    .step(2)
+                    .title("분쟁조정위원회 신청")
+                    .description("내용증명 무응답 시 분쟁조정위원회 신청")
+                    .estimatedTime("2-4주")
+                    .cost("무료")
+                    .build(),
+                ReportResponseDto.DisputeRoadmapStepDto.builder()
+                    .step(3)
+                    .title("소송 제기")
+                    .description("조정 실패 시 소송 제기 (최후 수단)")
+                    .estimatedTime("3-6개월")
+                    .cost("소송비용 별도")
+                    .build()
+            );
+            
+            // 전문가 상담 정보
+            ReportResponseDto.ExpertConsultationDto expertConsultation = ReportResponseDto.ExpertConsultationDto.builder()
+                    .available(true)
+                    .price(50000)
+                    .duration("15분")
+                    .contactInfo("02-1234-5678")
+                    .build();
+            
+            builder.disputeRoadmap(roadmap)
+                   .expertConsultation(expertConsultation);
+        }
+        
+        return builder.build();
+    }
+
     private ReportResponseDto.DisputeGuideDto buildStaticDisputeGuide() {
         return ReportResponseDto.DisputeGuideDto.builder()
                 .relatedLaw("주택임대차보호법 제6조의2 (임대인의 수선유지 의무)")
                 .committeeInfo("서울서부 임대차분쟁조정위원회 (연락처: 02-123-4567)")
                 .formDownloadLink("#") // Placeholder link
                 .build();
+    }
+    
+    // 프리미엄 협상 카드 데이터 생성 메서드들
+    private String generateSuccessProbability(ReportResponseDto.ScoreComparison score) {
+        double scoreDiff = score.getNeighborhoodAverage() - score.getMyScore();
+        int baseProbability = 50;
+        
+        if (scoreDiff > 1.0) {
+            baseProbability = 85; // 큰 차이면 높은 성공률
+        } else if (scoreDiff > 0.5) {
+            baseProbability = 72; // 중간 차이면 중간 성공률
+        } else {
+            baseProbability = 45; // 작은 차이면 낮은 성공률
+        }
+        
+        return baseProbability + "%";
+    }
+    
+    private String generateAlternativeStrategy(ReportResponseDto.ScoreComparison score) {
+        String category = score.getCategory();
+        
+        switch (category) {
+            case "소음":
+                return "소음 문제가 지속되면 주택임대차보호법 제6조의2에 따라 임대인에게 수선 의무가 있습니다. 내용증명으로 요구서를 보내세요.";
+            case "수압/온수":
+                return "수압 문제는 우리 건물 평균 대비 50% 낮습니다. 수선 의무가 있으니 보일러/배관 점검을 요구하세요.";
+            case "채광":
+                return "채광 부족은 건물 구조상 개선이 어려우므로, 월세 인상률 동결 또는 관리비 할인을 요구하세요.";
+            case "주차/교통":
+                return "주차 문제는 동네 인프라와 관련이 있으므로, 임대인과 협의하여 대안을 모색하세요.";
+            default:
+                return "법적 근거를 바탕으로 단계적 접근을 권장합니다.";
+        }
+    }
+    
+    private String generateExpertTip(ReportResponseDto.ScoreComparison score) {
+        String category = score.getCategory();
+        
+        switch (category) {
+            case "소음":
+                return "소음 측정 데이터와 이전 세입자 증언을 함께 제시하면 성공 확률이 높아집니다.";
+            case "수압/온수":
+                return "수압 측정 앱으로 객관적 데이터를 수집하여 제시하면 설득력이 높아집니다.";
+            case "채광":
+                return "채광 측정 앱으로 객관적 데이터를 수집하여 제시하면 설득력이 높아집니다.";
+            case "주차/교통":
+                return "주차 공간 확보 방안을 구체적으로 제시하면 협상에 유리합니다.";
+            default:
+                return "객관적 데이터와 함께 제시하면 성공 확률이 높아집니다.";
+        }
     }
 }
