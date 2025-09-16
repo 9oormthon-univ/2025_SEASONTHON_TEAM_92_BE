@@ -70,7 +70,9 @@ public class GoogleService extends SimpleUrlAuthenticationSuccessHandler {
             }
         }
 
-        String jwtToken = jwtTokenProvider.createToken(member.getId(), member.getEmail(), member.getRole().toString());
+        // 이메일이 null일 경우 providerId를 사용 (안전장치)
+        String email = member.getEmail() != null ? member.getEmail() : member.getProviderId() + "@google.local";
+        String jwtToken = jwtTokenProvider.createToken(member.getId(), email, member.getRole().toString());
 
         String redirectUrl = UriComponentsBuilder.fromUriString(frontendRedirectUrl)
                 .queryParam("token", jwtToken)

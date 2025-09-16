@@ -36,8 +36,9 @@ public class KakaoService extends SimpleUrlAuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
-        OAuth2User oAuth2User = oauthToken.getPrincipal();
+        try {
+            OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
+            OAuth2User oAuth2User = oauthToken.getPrincipal();
 
         String providerId = oAuth2User.getAttribute("id").toString();
         String email = null;
@@ -87,7 +88,9 @@ public class KakaoService extends SimpleUrlAuthenticationSuccessHandler {
             }
         }
 
-        String jwtToken = jwtTokenProvider.createToken(member.getId(), member.getEmail(), member.getRole().toString());
+        // 이메일이 null일 경우 providerId를 사용
+        String email = member.getEmail() != null ? member.getEmail() : member.getProviderId() + "@kakao.local";
+        String jwtToken = jwtTokenProvider.createToken(member.getId(), email, member.getRole().toString());
 
         String redirectUrl = UriComponentsBuilder.fromUriString(frontendRedirectUrl)
                 .queryParam("token", jwtToken)
@@ -102,5 +105,20 @@ public class KakaoService extends SimpleUrlAuthenticationSuccessHandler {
         System.out.println("================================");
         
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+        
+        } catch (Exception e) {
+            System.err.println("=== Kakao OAuth Error ===");
+            System.err.println("Error: " + e.getMessage());
+            e.printStackTrace();
+            System.err.println("========================");
+            
+            // 에러 발생 시 프론트엔드로 에러 파라미터와 함께 리다이렉트
+            String errorRedirectUrl = UriComponentsBuilder.fromUriString(frontendRedirectUrl)
+                    .queryParam("error", "oauth_failed")
+                    .queryParam("message", e.getMessage())
+                    .build().toUriString();
+            
+            getRedirectStrategy().sendRedirect(request, response, errorRedirectUrl);
+        }
     }
 }
