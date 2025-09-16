@@ -59,4 +59,7 @@ public class ReportService {
                 .build();
         return reportResponseDto;
     }
+
+    public Long createPremiumReport(ReportRequestDto reportRequestDto, Member member) {
+    }
 }

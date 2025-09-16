@@ -25,10 +25,11 @@ public class ReportController {
     }
 
 
-//    @PostMapping("report/premium/report")
-//    public ResponseEntity<?> getPremiumReport(@RequestBody ) {
-//
-//    }
+    @PostMapping("report/premium/report")
+    public ResponseEntity<?> getPremiumReport(@RequestBody ReportRequestDto reportRequestDto, @AuthenticationPrincipal Member member) {
+        Long reportId = reportService.createPremiumReport(reportRequestDto, member);
+        return new ResponseEntity<>(reportId, HttpStatus.CREATED);
+    }
 
 
 

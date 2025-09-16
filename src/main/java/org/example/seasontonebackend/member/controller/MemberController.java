@@ -97,8 +97,8 @@ public class MemberController {
 
 
     @PostMapping("/login/google")
-    public ResponseEntity<?> googleLogin(@RequestBody GoogleTokenDto googleTokenDto) {
-        AccessTokenDto accessTokenDto = memberService.getAccessToken(googleTokenDto.getGoogleToken());
+    public ResponseEntity<?> googleLogin(@RequestBody TokenDto TokenDto) {
+        AccessTokenDto accessTokenDto = memberService.getAccessToken(TokenDto.getToken());
         GoogleProfileDto googleProfileDto = memberService.getGoogleProfile(accessTokenDto.getAccess_token());
 
         Member originalMember = memberService.getMemberBySocialId(googleProfileDto.getSub());
@@ -116,7 +116,22 @@ public class MemberController {
 
 
 //
+    @PostMapping("/login/kakao")
+    public ResponseEntity<?> kakaoLogin(@RequestBody TokenDto tokenDto) {
+        AccessTokenDto accessTokenDto = memberService.getKakaoAccessToken(tokenDto.getToken());
+        KakaoProfileDto kakaoProfileDto  = memberService.getKakaoProfile(accessTokenDto.getAccess_token());
+        Member originalMember = memberService.getMemberBySocialId(kakaoProfileDto.getId());
+        if(originalMember == null){
+            originalMember = memberService.createOauth(kakaoProfileDto.getId(), kakaoProfileDto.getKakao_account().getEmail(), SocialType.KAKAO);
+        }
+        String jwtToken = jwtTokenProvider.createToken(originalMember.getId(), originalMember.getEmail(), originalMember.getRole().toString());
 
+        Map<String, Object> loginInfo = new HashMap<>();
+        loginInfo.put("id", originalMember.getId());
+        loginInfo.put("token", jwtToken);
+        return new ResponseEntity<>(loginInfo, HttpStatus.OK);
+
+    }
 
 
 }
