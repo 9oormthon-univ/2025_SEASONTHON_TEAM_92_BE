@@ -215,11 +215,9 @@ public class VillaServiceImpl implements VillaService {
     }
 
     private List<VillaPublicApiResponseDTO.Item> callApiAndParseXml(String lawdCd, String dealYmd) {
-        // serviceKey를 수동으로 URL 인코딩
-        String encodedServiceKey = java.net.URLEncoder.encode(serviceKey, java.nio.charset.StandardCharsets.UTF_8);
-        
+        // serviceKey는 이미 URL 인코딩되어 있으므로 그대로 사용
         URI uri = UriComponentsBuilder.fromUriString(API_URL)
-                .queryParam("serviceKey", encodedServiceKey)
+                .queryParam("serviceKey", serviceKey)
                 .queryParam("LAWD_CD", lawdCd)
                 .queryParam("DEAL_YMD", dealYmd)
                 .queryParam("numOfRows", MAX_ROWS_PER_REQUEST)
