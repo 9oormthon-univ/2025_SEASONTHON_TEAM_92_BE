@@ -65,6 +65,7 @@ public class ReportService {
         List<ReportResponseDto.NegotiationCardDto> negotiationCards = buildNegotiationCards(subjectiveMetrics, null);
 
         String fullAddress = (member.getDong() != null ? member.getDong() : "") + " " + (member.getBuilding() != null ? member.getBuilding() : "");
+        System.out.println("DEBUG - Member info: dong=" + member.getDong() + ", building=" + member.getBuilding() + ", fullAddress=" + fullAddress);
         String conditions = String.format("보증금 %s / 월세 %s / 관리비 %s",
                 member.getSecurity() != null ? member.getSecurity().toString() : "미입력",
                 member.getRent() != null ? member.getRent().toString() : "미입력",
