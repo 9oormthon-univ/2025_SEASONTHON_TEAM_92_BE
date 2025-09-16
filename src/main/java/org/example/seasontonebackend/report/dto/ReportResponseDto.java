@@ -35,7 +35,7 @@ public class ReportResponseDto {
     private DisputeGuideDto disputeGuide;
 
     // 8. 스마트 진단 데이터 (프리미엄 전용)
-    private Map<String, Object> smartDiagnosisData;
+    private Object smartDiagnosisData;
 
     // --- 각 DTO의 상세 구조 ---
 

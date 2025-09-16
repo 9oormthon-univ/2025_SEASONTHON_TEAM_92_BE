@@ -8,7 +8,8 @@ import org.example.seasontonebackend.report.domain.Report;
 import org.example.seasontonebackend.report.dto.ReportRequestDto;
 import org.example.seasontonebackend.report.dto.ReportResponseDto;
 import org.example.seasontonebackend.report.repository.ReportRepository;
-import org.example.seasontonebackend.smartdiagnosis.service.SmartDiagnosisService;
+import org.example.seasontonebackend.smartdiagnosis.application.SmartDiagnosisService;
+import org.example.seasontonebackend.smartdiagnosis.dto.SmartDiagnosisResponseDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -121,7 +122,7 @@ public class ReportService {
         List<ReportResponseDto.NegotiationCardDto> negotiationCards = buildNegotiationCards(subjectiveMetrics, report.getUserInput(), report.getReportType());
 
         // 스마트 진단 데이터 가져오기
-        Map<String, Object> smartDiagnosisData = null;
+        SmartDiagnosisResponseDTO.SmartDiagnosisSummary smartDiagnosisData = null;
         try {
             smartDiagnosisData = smartDiagnosisService.getSmartDiagnosisSummary(member);
         } catch (Exception e) {
@@ -204,7 +205,7 @@ public class ReportService {
         List<ReportResponseDto.NegotiationCardDto> negotiationCards = buildNegotiationCards(subjectiveMetrics, null, "free");
 
         // 스마트 진단 데이터 가져오기
-        Map<String, Object> smartDiagnosisData = null;
+        SmartDiagnosisResponseDTO.SmartDiagnosisSummary smartDiagnosisData = null;
         try {
             smartDiagnosisData = smartDiagnosisService.getSmartDiagnosisSummary(member);
         } catch (Exception e) {
