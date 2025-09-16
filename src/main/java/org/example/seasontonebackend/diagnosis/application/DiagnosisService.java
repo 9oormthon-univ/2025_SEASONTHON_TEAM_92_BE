@@ -32,6 +32,7 @@ public class DiagnosisService {
                         .questionId((long) ((i - 1) * 2 + j))
                         .questionText(getQuestionText(i, j))
                         .subText(getSubText(i, j))
+                        .experienceOptions(getExperienceOptions(i, j))
                         .build();
                 questions.add(question);
             }

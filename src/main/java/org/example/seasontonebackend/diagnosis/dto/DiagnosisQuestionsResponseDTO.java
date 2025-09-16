@@ -33,5 +33,6 @@ public class DiagnosisQuestionsResponseDTO {
         private Long questionId;
         private String questionText;
         private String subText;
+        private List<ExperienceOptionDTO> experienceOptions;
     }
 }
