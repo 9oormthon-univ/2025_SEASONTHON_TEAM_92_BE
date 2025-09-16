@@ -220,7 +220,7 @@ public class VillaServiceImpl implements VillaService {
                 .queryParam("LAWD_CD", lawdCd)
                 .queryParam("DEAL_YMD", dealYmd)
                 .queryParam("numOfRows", MAX_ROWS_PER_REQUEST)
-                .build(true)
+                .build(false)
                 .toUri();
 
         log.debug("빌라 API 요청 URL: {}", uri);
