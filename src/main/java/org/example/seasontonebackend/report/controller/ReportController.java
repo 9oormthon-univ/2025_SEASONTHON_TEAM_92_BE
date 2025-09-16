@@ -18,11 +18,17 @@ public class ReportController {
     }
 
 
-    @PostMapping("/report/create")
+    @PostMapping("/report/normal/create")
     public ResponseEntity<?> createReport(@RequestBody ReportRequestDto reportRequestDto, @AuthenticationPrincipal Member member) {
         Long reportId = reportService.createReport(reportRequestDto, member);
         return new ResponseEntity<>(reportId, HttpStatus.CREATED);
     }
+
+
+//    @PostMapping("report/premium/report")
+//    public ResponseEntity<?> getPremiumReport(@RequestBody ) {
+//
+//    }
 
 
     @GetMapping("/report/{reportId}")

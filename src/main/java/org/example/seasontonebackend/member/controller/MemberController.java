@@ -5,10 +5,8 @@ package org.example.seasontonebackend.member.controller;
 import org.example.seasontonebackend.member.auth.JwtTokenProvider;
 import org.example.seasontonebackend.member.domain.Member;
 import org.example.seasontonebackend.member.domain.Role;
-import org.example.seasontonebackend.member.dto.MemberCreateDto;
-import org.example.seasontonebackend.member.dto.MemberDongBuildingRequestDto;
-import org.example.seasontonebackend.member.dto.MemberLoginDto;
-import org.example.seasontonebackend.member.dto.MemberProfileDto;
+import org.example.seasontonebackend.member.domain.SocialType;
+import org.example.seasontonebackend.member.dto.*;
 import org.example.seasontonebackend.member.service.MemberService;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
@@ -81,15 +79,46 @@ public class MemberController {
 
 
 
-    @GetMapping("/google/token")
-    public ResponseEntity<?> googleLoginGetToken(@RequestParam Long googleUser) {
-        String token = memberService.googleGetToken(googleUser);
+//    @GetMapping("/google/token")
+//    public ResponseEntity<?> googleLoginGetToken(@RequestParam Long googleUser) {
+//        String token = memberService.googleGetToken(googleUser);
+//
+//        Map<String, Object> loginInfo = new HashMap<>();
+//        loginInfo.put("token", token);
+//        return new ResponseEntity<>(loginInfo, HttpStatus.OK);
+//    }
+
+
+    @PatchMapping("/profile/modify")
+    public ResponseEntity<?> modifyUserProfile(@RequestBody ModifyMemberProfileDto modifyMemberProfileDto, @AuthenticationPrincipal Member member) {
+        memberService.modifyMemberProfile(member, modifyMemberProfileDto);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
+    @PostMapping("/login/google")
+    public ResponseEntity<?> googleLogin(@RequestBody GoogleTokenDto googleTokenDto) {
+        AccessTokenDto accessTokenDto = memberService.getAccessToken(googleTokenDto.getGoogleToken());
+        GoogleProfileDto googleProfileDto = memberService.getGoogleProfile(accessTokenDto.getAccess_token());
+
+        Member originalMember = memberService.getMemberBySocialId(googleProfileDto.getSub());
+        if(originalMember == null){
+            originalMember = memberService.createOauth(googleProfileDto.getSub(), googleProfileDto.getEmail(), SocialType.GOOGLE);
+        }
+//        회원가입돼 있는 회원이라면 토큰발급
+        String jwtToken = jwtTokenProvider.createToken(originalMember.getId() ,originalMember.getEmail(), originalMember.getRole().toString());
 
         Map<String, Object> loginInfo = new HashMap<>();
-        loginInfo.put("token", token);
+        loginInfo.put("id", originalMember.getId());
+        loginInfo.put("token", jwtToken);
         return new ResponseEntity<>(loginInfo, HttpStatus.OK);
     }
 
 
+//
+
+
 
 }
+
+
