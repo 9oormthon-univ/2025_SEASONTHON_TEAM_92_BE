@@ -32,6 +32,7 @@ public class ReportController {
 
 
 
+
     @GetMapping("/report/{reportId}")
     public ResponseEntity<?> getReport(@PathVariable Long reportId) {
         ReportResponseDto reportResponseDto = reportService.getReport(reportId);
