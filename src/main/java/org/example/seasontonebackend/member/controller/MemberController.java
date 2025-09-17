@@ -153,6 +153,32 @@ public class MemberController {
         }
     }
 
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@RequestBody Map<String, Object> updateData, @AuthenticationPrincipal Member member) {
+        try {
+            System.out.println("=== 프로필 업데이트 요청 ===");
+            System.out.println("Member: " + member.getId());
+            System.out.println("Update data: " + updateData);
+            
+            memberService.updateUserInfo(member, updateData);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "프로필이 성공적으로 업데이트되었습니다.");
+            
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            System.err.println("프로필 업데이트 오류: " + e.getMessage());
+            e.printStackTrace();
+            
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "프로필 업데이트 중 오류가 발생했습니다: " + e.getMessage());
+            
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     // OAuth 로그인 엔드포인트 추가
     @GetMapping("/oauth2/authorization/google")
     public RedirectView googleLogin() {

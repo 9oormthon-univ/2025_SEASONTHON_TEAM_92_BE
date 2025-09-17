@@ -1,13 +1,17 @@
 package org.example.seasontonebackend.report.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ReportResponseDto {
 
     // 리포트 타입 (무료/프리미엄)
@@ -41,6 +45,8 @@ public class ReportResponseDto {
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ReportHeaderDto {
         private String title; // "망원동 ○○빌라 임대차 협상 리포트"
         private String generatedDate; // "2025.09.08"
@@ -52,6 +58,8 @@ public class ReportResponseDto {
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ContractSummaryDto {
         private String address; // 주소/건물명
         private String buildingType; // 건물 유형
@@ -63,6 +71,8 @@ public class ReportResponseDto {
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class SubjectiveMetricsDto {
         private ScoreComparison overallScore; // 종합 점수 비교
         private List<ScoreComparison> categoryScores; // 카테고리별 점수 비교 (채광, 방음 등)
@@ -70,6 +80,8 @@ public class ReportResponseDto {
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ScoreComparison {
         private String category; // "종합", "채광", "방음" 등
         private double myScore;
@@ -80,12 +92,16 @@ public class ReportResponseDto {
     // 객관적 지표 DTO - 추후 필드 정의
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ObjectiveMetricsDto {
         // 예: private PriceComparison marketPrice;
     }
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class NegotiationCardDto {
         private int priority; // 1순위, 2순위...
         private String title; // "시설 개선 요구", "월세 조정 요구"
@@ -99,6 +115,8 @@ public class ReportResponseDto {
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class PolicyInfoDto {
         private String title; // "청년 월세 특별지원"
         private String description; // "국토부, 신청 조건..."
@@ -112,6 +130,8 @@ public class ReportResponseDto {
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class DisputeGuideDto {
         private String relatedLaw; // "주택임대차보호법 ○○조 (임대인 수선 의무)"
         private String committeeInfo; // "서울서부 임대차분쟁조정위원회 연락처/링크"
@@ -124,6 +144,8 @@ public class ReportResponseDto {
     
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class DisputeRoadmapStepDto {
         private int step; // 단계 번호
         private String title; // 단계 제목
@@ -134,6 +156,8 @@ public class ReportResponseDto {
     
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ExpertConsultationDto {
         private boolean available; // 상담 가능 여부
         private int price; // 상담 비용
