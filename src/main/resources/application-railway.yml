@@ -81,6 +81,9 @@ server:
   port: ${PORT:8080}
   tomcat:
     connection-timeout: 0
+  servlet:
+    context-path: /
+  forward-headers-strategy: framework
 
 # 로깅 설정
 logging:
