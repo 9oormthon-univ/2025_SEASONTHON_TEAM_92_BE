@@ -11,6 +11,11 @@ import org.example.seasontonebackend.smartdiagnosis.repository.SmartMeasurementR
 import org.example.seasontonebackend.mission.domain.entity.WeeklyMission;
 import org.example.seasontonebackend.mission.domain.entity.MissionQuestion;
 import org.example.seasontonebackend.mission.repository.WeeklyMissionRepository;
+import org.example.seasontonebackend.diagnosis.domain.entity.DiagnosisResponse;
+import org.example.seasontonebackend.diagnosis.domain.DiagnosisScore;
+import org.example.seasontonebackend.diagnosis.domain.repository.DiagnosisResponseRepository;
+import org.example.seasontonebackend.report.domain.Report;
+import org.example.seasontonebackend.report.repository.ReportRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +37,8 @@ public class DummyDataInitializer implements CommandLineRunner {
     private final MemberRepository memberRepository;
     private final SmartMeasurementRepository smartMeasurementRepository;
     private final WeeklyMissionRepository weeklyMissionRepository;
+    private final DiagnosisResponseRepository diagnosisResponseRepository;
+    private final ReportRepository reportRepository;
     private final PasswordEncoder passwordEncoder;
     private final Environment environment;
 
@@ -65,6 +72,12 @@ public class DummyDataInitializer implements CommandLineRunner {
             
             // 더미 스마트 측정 데이터 생성
             createDummySmartMeasurements(members);
+            
+            // 더미 진단 응답 데이터 생성 (리포트 신뢰성 향상)
+            createDummyDiagnosisResponses(members);
+            
+            // 더미 리포트 데이터 생성
+            createDummyReports(members);
             
             // 더미 미션 데이터 생성
             createDummyMissions();
@@ -220,5 +233,97 @@ public class DummyDataInitializer implements CommandLineRunner {
         
         weeklyMissionRepository.saveAll(missions);
         log.info("{}개의 주간 미션이 생성되었습니다.", missions.size());
+    }
+
+    private void createDummyDiagnosisResponses(List<Member> members) {
+        List<DiagnosisResponse> responses = new ArrayList<>();
+        
+        // 각 사용자당 진단 응답 생성 (10개 카테고리 × 2개 질문 = 20개 응답)
+        for (Member member : members) {
+            for (int category = 1; category <= 10; category++) {
+                for (int question = 1; question <= 2; question++) {
+                    long questionId = (category - 1) * 2 + question;
+                    
+                    // 다양한 점수 분포 생성 (1-5점)
+                    DiagnosisScore score;
+                    int scoreValue = random.nextInt(5) + 1;
+                    
+                    // 카테고리별로 점수 분포 조정 (현실적인 패턴)
+                    switch (category) {
+                        case 1: // 소음 - 보통 낮은 점수
+                            scoreValue = random.nextInt(3) + 1; // 1-3점
+                            break;
+                        case 2: // 수압/온수 - 보통 점수
+                            scoreValue = random.nextInt(3) + 2; // 2-4점
+                            break;
+                        case 3: // 채광 - 건물에 따라 다름
+                            scoreValue = random.nextInt(4) + 1; // 1-4점
+                            break;
+                        case 7: // 보안/안전 - 보통 높은 점수
+                            scoreValue = random.nextInt(2) + 3; // 3-4점
+                            break;
+                        case 9: // 편의시설 - 보통 점수
+                            scoreValue = random.nextInt(3) + 2; // 2-4점
+                            break;
+                        default: // 나머지는 일반적인 분포
+                            scoreValue = random.nextInt(5) + 1; // 1-5점
+                    }
+                    
+                    score = DiagnosisScore.values()[scoreValue - 1];
+                    
+                    DiagnosisResponse response = DiagnosisResponse.builder()
+                        .userId(member.getId())
+                        .questionId(questionId)
+                        .score(score)
+                        .createdAt(LocalDateTime.now().minusDays(random.nextInt(30)))
+                        .build();
+                        
+                    responses.add(response);
+                }
+            }
+        }
+        
+        diagnosisResponseRepository.saveAll(responses);
+        log.info("{}개의 진단 응답 데이터가 생성되었습니다.", responses.size());
+    }
+
+    private void createDummyReports(List<Member> members) {
+        List<Report> reports = new ArrayList<>();
+        
+        String[] reportTypes = {"free", "premium"};
+        String[] userInputs = {
+            "소음 문제가 심각합니다. 위층에서 계속 발소리가 들려요.",
+            "수압이 너무 약해서 샤워할 때 불편합니다.",
+            "채광이 부족해서 낮에도 불을 켜야 합니다.",
+            "주차 공간이 부족해서 매번 고민입니다.",
+            "난방비가 너무 많이 나와요.",
+            "환기가 잘 안되어 습도가 높습니다.",
+            "보안이 걱정됩니다. 출입문이 자주 열려있어요.",
+            "관리사무소가 제대로 관리하지 않습니다.",
+            "편의시설이 부족합니다.",
+            "인터넷 속도가 너무 느려요."
+        };
+        
+        // 각 사용자당 1-3개의 리포트 생성
+        for (Member member : members) {
+            int reportCount = random.nextInt(3) + 1; // 1-3개
+            
+            for (int i = 0; i < reportCount; i++) {
+                String reportType = reportTypes[random.nextInt(reportTypes.length)];
+                String userInput = userInputs[random.nextInt(userInputs.length)];
+                
+                Report report = Report.builder()
+                    .member(member)
+                    .userInput(userInput)
+                    .reportType(reportType)
+                    .isShareable(true)
+                    .build();
+                    
+                reports.add(report);
+            }
+        }
+        
+        reportRepository.saveAll(reports);
+        log.info("{}개의 리포트가 생성되었습니다.", reports.size());
     }
 }
