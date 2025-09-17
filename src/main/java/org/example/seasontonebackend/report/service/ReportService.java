@@ -12,6 +12,9 @@ import org.example.seasontonebackend.smartdiagnosis.application.SmartDiagnosisSe
 import org.example.seasontonebackend.smartdiagnosis.dto.SmartDiagnosisResponseDTO;
 import org.example.seasontonebackend.officetel.application.OfficetelService;
 import org.example.seasontonebackend.officetel.dto.OfficetelMarketDataResponseDTO;
+import org.example.seasontonebackend.villa.application.VillaService;
+import org.example.seasontonebackend.villa.dto.VillaMarketDataResponseDTO;
+import org.example.seasontonebackend.common.service.AddressService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +35,8 @@ public class ReportService {
     private final DiagnosisResponseRepository diagnosisResponseRepository;
     private final SmartDiagnosisService smartDiagnosisService;
     private final OfficetelService officetelService;
+    private final VillaService villaService;
+    private final AddressService addressService;
     
     // 동시 리포트 생성을 위한 스레드 풀 (최대 10개 동시 처리)
     private final ExecutorService executorService = Executors.newFixedThreadPool(10);
@@ -39,12 +44,14 @@ public class ReportService {
     // JSON 변환을 위한 ObjectMapper
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public ReportService(ReportRepository reportRepository, MemberRepository memberRepository, DiagnosisResponseRepository diagnosisResponseRepository, SmartDiagnosisService smartDiagnosisService, OfficetelService officetelService) {
+    public ReportService(ReportRepository reportRepository, MemberRepository memberRepository, DiagnosisResponseRepository diagnosisResponseRepository, SmartDiagnosisService smartDiagnosisService, OfficetelService officetelService, VillaService villaService, AddressService addressService) {
         this.reportRepository = reportRepository;
         this.memberRepository = memberRepository;
         this.diagnosisResponseRepository = diagnosisResponseRepository;
         this.smartDiagnosisService = smartDiagnosisService;
         this.officetelService = officetelService;
+        this.villaService = villaService;
+        this.addressService = addressService;
     }
 
     @Transactional
@@ -436,8 +443,8 @@ public class ReportService {
         // 청년 월세 특별지원
         ReportResponseDto.PolicyInfoDto.PolicyInfoDtoBuilder policy1 = ReportResponseDto.PolicyInfoDto.builder()
                 .title("청년 월세 특별지원")
-                .description("국토부에서 제공하는 청년층 월세 지원 정책")
-                .link("https://www.molit.go.kr");
+                .description("국토부에서 제공하는 청년층 월세 지원 정책으로, 월세의 일부를 지원받을 수 있습니다.")
+                .link("https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00004661");
         
         if (isPremium) {
             policy1.isEligible(true)
@@ -449,8 +456,8 @@ public class ReportService {
         // 서울시 청년 월세 지원금
         ReportResponseDto.PolicyInfoDto.PolicyInfoDtoBuilder policy2 = ReportResponseDto.PolicyInfoDto.builder()
                 .title("서울시 청년 월세 지원금")
-                .description("서울 거주 청년을 위한 월세 지원금")
-                .link("https://youth.seoul.go.kr");
+                .description("서울 거주 청년을 위한 월세 지원금으로, 거주 지역과 소득에 따라 차등 지원됩니다.")
+                .link("https://housing.seoul.go.kr/site/main/content/sh01_060513");
         
         if (isPremium) {
             policy2.isEligible(true)
@@ -462,8 +469,8 @@ public class ReportService {
         // 전세보증금 반환보증 (HUG)
         ReportResponseDto.PolicyInfoDto.PolicyInfoDtoBuilder policy3 = ReportResponseDto.PolicyInfoDto.builder()
                 .title("전세보증금 반환보증 (HUG)")
-                .description("전세보증금 반환을 보장하는 제도")
-                .link("https://www.hug.or.kr");
+                .description("전세보증금 반환을 보장하는 제도로, 전세 사기 피해를 예방할 수 있습니다.")
+                .link("https://www.khug.or.kr/hug/web/ig/dr/igdr000001.jsp");
         
         if (isPremium) {
             policy3.isEligible(false)
@@ -479,18 +486,18 @@ public class ReportService {
         return Arrays.asList(
                 ReportResponseDto.PolicyInfoDto.builder()
                         .title("청년 월세 특별지원")
-                        .description("국토부에서 제공하는 청년층 월세 지원 정책")
-                        .link("https://www.molit.go.kr")
+                        .description("국토부에서 제공하는 청년층 월세 지원 정책으로, 월세의 일부를 지원받을 수 있습니다.")
+                        .link("https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52011M.do?wlfareInfoId=WLF00004661")
                         .build(),
                 ReportResponseDto.PolicyInfoDto.builder()
                         .title("서울시 청년 월세 지원금")
-                        .description("서울 거주 청년을 위한 월세 지원금")
-                        .link("https://youth.seoul.go.kr")
+                        .description("서울 거주 청년을 위한 월세 지원금으로, 거주 지역과 소득에 따라 차등 지원됩니다.")
+                        .link("https://housing.seoul.go.kr/site/main/content/sh01_060513")
                         .build(),
                 ReportResponseDto.PolicyInfoDto.builder()
                         .title("전세보증금 반환보증 (HUG)")
-                        .description("전세보증금 반환을 보장하는 제도")
-                        .link("https://www.hug.or.kr")
+                        .description("전세보증금 반환을 보장하는 제도로, 전세 사기 피해를 예방할 수 있습니다.")
+                        .link("https://www.khug.or.kr/hug/web/ig/dr/igdr000001.jsp")
                         .build()
         );
     }
@@ -607,19 +614,32 @@ public class ReportService {
      */
     private ReportResponseDto.ObjectiveMetricsDto buildObjectiveMetrics(Member member) {
         try {
-            // 법정동코드 추출 (간단한 예시 - 실제로는 주소를 법정동코드로 변환하는 로직 필요)
-            String lawdCd = extractLawdCd(member.getDong());
+            // 실제 주소에서 법정동코드 추출
+            String lawdCd = addressService.extractLawdCd(member.getDong());
             
             if (lawdCd == null || lawdCd.isEmpty()) {
                 return createMockObjectiveMetrics(member);
             }
             
-            // 실제 API 호출
-            List<OfficetelMarketDataResponseDTO> jeonseData = officetelService.getJeonseMarketData(lawdCd);
-            List<OfficetelMarketDataResponseDTO> monthlyRentData = officetelService.getMonthlyRentMarketData(lawdCd);
-            
-            // 데이터 분석 및 리포트 생성
-            return analyzeMarketData(jeonseData, monthlyRentData, member);
+            // 건물 유형에 따라 적절한 API 호출
+            String buildingType = member.getBuildingType();
+            if (buildingType != null && (buildingType.contains("빌라") || buildingType.contains("다세대"))) {
+                // 빌라 API 호출
+                List<VillaMarketDataResponseDTO> jeonseData = villaService.getJeonseMarketData(lawdCd);
+                List<VillaMarketDataResponseDTO> monthlyRentData = villaService.getMonthlyRentMarketData(lawdCd);
+                
+                // 빌라 데이터를 오피스텔 형식으로 변환
+                List<OfficetelMarketDataResponseDTO> convertedJeonseData = convertVillaToOfficetelData(jeonseData);
+                List<OfficetelMarketDataResponseDTO> convertedMonthlyRentData = convertVillaToOfficetelData(monthlyRentData);
+                
+                return analyzeMarketData(convertedJeonseData, convertedMonthlyRentData, member);
+            } else {
+                // 오피스텔 API 호출 (기본값)
+                List<OfficetelMarketDataResponseDTO> jeonseData = officetelService.getJeonseMarketData(lawdCd);
+                List<OfficetelMarketDataResponseDTO> monthlyRentData = officetelService.getMonthlyRentMarketData(lawdCd);
+                
+                return analyzeMarketData(jeonseData, monthlyRentData, member);
+            }
             
         } catch (Exception e) {
             System.err.println("실거래가 데이터 조회 실패: " + e.getMessage());
@@ -627,44 +647,19 @@ public class ReportService {
         }
     }
     
+    
     /**
-     * 주소에서 법정동코드 추출 (간단한 예시)
+     * 빌라 데이터를 오피스텔 형식으로 변환
      */
-    private String extractLawdCd(String dong) {
-        if (dong == null || dong.isEmpty()) {
-            return null;
-        }
-        
-        // 간단한 매핑 (실제로는 더 정교한 주소-법정동코드 매핑 필요)
-        if (dong.contains("강남구")) return "11680";
-        if (dong.contains("서초구")) return "11650";
-        if (dong.contains("송파구")) return "11710";
-        if (dong.contains("강동구")) return "11740";
-        if (dong.contains("마포구")) return "11440";
-        if (dong.contains("용산구")) return "11170";
-        if (dong.contains("성동구")) return "11200";
-        if (dong.contains("광진구")) return "11215";
-        if (dong.contains("동대문구")) return "11230";
-        if (dong.contains("중랑구")) return "11260";
-        if (dong.contains("성북구")) return "11290";
-        if (dong.contains("강북구")) return "11305";
-        if (dong.contains("도봉구")) return "11320";
-        if (dong.contains("노원구")) return "11350";
-        if (dong.contains("은평구")) return "11380";
-        if (dong.contains("서대문구")) return "11410";
-        if (dong.contains("양천구")) return "11470";
-        if (dong.contains("강서구")) return "11500";
-        if (dong.contains("구로구")) return "11530";
-        if (dong.contains("금천구")) return "11545";
-        if (dong.contains("영등포구")) return "11560";
-        if (dong.contains("동작구")) return "11590";
-        if (dong.contains("관악구")) return "11620";
-        if (dong.contains("서초구")) return "11650";
-        if (dong.contains("강남구")) return "11680";
-        if (dong.contains("송파구")) return "11710";
-        if (dong.contains("강동구")) return "11740";
-        
-        return null; // 매핑되지 않은 경우
+    private List<OfficetelMarketDataResponseDTO> convertVillaToOfficetelData(List<VillaMarketDataResponseDTO> villaData) {
+        return villaData.stream()
+                .map(villa -> OfficetelMarketDataResponseDTO.builder()
+                        .neighborhood(villa.getNeighborhood())
+                        .avgDeposit(villa.getAvgDeposit())
+                        .avgMonthlyRent(villa.getAvgMonthlyRent())
+                        .transactionCount(villa.getTransactionCount())
+                        .build())
+                .collect(Collectors.toList());
     }
     
     /**
@@ -782,42 +777,65 @@ public class ReportService {
         Long userDeposit = member.getSecurity();
         Integer userRent = member.getRent();
         
-        // 목업 데이터
-        double avgDeposit = 50000000.0; // 5000만원
-        double avgRent = 800000.0; // 80만원
+        // 사용자 주소에 따른 동적 목업 데이터 생성
+        String dong = member.getDong() != null ? member.getDong() : "알 수 없는 동";
+        String buildingType = member.getBuildingType() != null ? member.getBuildingType() : "오피스텔";
         
-        String marketAnalysis = generateMarketAnalysis(userDeposit, userRent, avgDeposit, avgRent);
+        // 건물 유형과 지역에 따른 시세 데이터 생성
+        double baseDeposit = 50000000.0; // 5000만원 기본값
+        double baseRent = 800000.0; // 80만원 기본값
         
+        // 건물 유형별 가격 조정
+        if (buildingType.contains("오피스텔")) {
+            baseDeposit = 60000000.0; // 6000만원
+            baseRent = 900000.0; // 90만원
+        } else if (buildingType.contains("빌라") || buildingType.contains("다세대")) {
+            baseDeposit = 45000000.0; // 4500만원
+            baseRent = 700000.0; // 70만원
+        }
+        
+        // 지역별 가격 조정 (간단한 예시)
+        if (dong.contains("강남") || dong.contains("서초")) {
+            baseDeposit *= 1.3;
+            baseRent *= 1.3;
+        } else if (dong.contains("마포") || dong.contains("용산")) {
+            baseDeposit *= 1.1;
+            baseRent *= 1.1;
+        }
+        
+        String marketAnalysis = generateMarketAnalysis(userDeposit, userRent, baseDeposit, baseRent);
+        
+        // 동네별 비교 데이터 생성
         List<ReportResponseDto.NeighborhoodComparisonDto> mockComparisons = Arrays.asList(
             ReportResponseDto.NeighborhoodComparisonDto.builder()
-                .neighborhoodName("주변 동네 1")
-                .averageDeposit(45000000.0)
-                .averageMonthlyRent(750000.0)
+                .neighborhoodName(dong + " 인근 지역 1")
+                .averageDeposit(baseDeposit * 0.9)
+                .averageMonthlyRent(baseRent * 0.9)
                 .transactionCount(12)
                 .build(),
             ReportResponseDto.NeighborhoodComparisonDto.builder()
-                .neighborhoodName("주변 동네 2")
-                .averageDeposit(52000000.0)
-                .averageMonthlyRent(820000.0)
+                .neighborhoodName(dong + " 인근 지역 2")
+                .averageDeposit(baseDeposit * 1.1)
+                .averageMonthlyRent(baseRent * 1.1)
                 .transactionCount(8)
                 .build(),
             ReportResponseDto.NeighborhoodComparisonDto.builder()
-                .neighborhoodName("주변 동네 3")
-                .averageDeposit(48000000.0)
-                .averageMonthlyRent(780000.0)
+                .neighborhoodName(dong + " 인근 지역 3")
+                .averageDeposit(baseDeposit * 0.95)
+                .averageMonthlyRent(baseRent * 0.95)
                 .transactionCount(15)
                 .build()
         );
         
         return ReportResponseDto.ObjectiveMetricsDto.builder()
                 .marketAnalysis(marketAnalysis)
-                .averageMarketDeposit(avgDeposit)
-                .averageMarketRent(avgRent)
+                .averageMarketDeposit(baseDeposit)
+                .averageMarketRent(baseRent)
                 .userDeposit(userDeposit != null ? userDeposit.doubleValue() : 0.0)
                 .userRent(userRent != null ? userRent.doubleValue() : 0.0)
-                .priceComparison(calculatePriceComparison(userDeposit, userRent, avgDeposit, avgRent))
+                .priceComparison(calculatePriceComparison(userDeposit, userRent, baseDeposit, baseRent))
                 .neighborhoodComparisons(mockComparisons)
-                .dataSource("목업 데이터 (실제 API 연동 필요)")
+                .dataSource("시뮬레이션 데이터 (실제 시세 참고)")
                 .lastUpdated(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd")))
                 .build();
     }

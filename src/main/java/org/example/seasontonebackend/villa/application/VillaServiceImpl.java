@@ -134,44 +134,93 @@ public class VillaServiceImpl implements VillaService {
     
     // 모의 월세 시장 데이터
     private List<VillaMarketDataResponseDTO> getMockMonthlyRentMarketData(String lawdCd) {
+        // 빌라 기본 가격 (오피스텔보다 낮음)
+        double baseRent = getBaseRentByRegion(lawdCd, "빌라");
+        
         return Arrays.asList(
             VillaMarketDataResponseDTO.builder()
                 .neighborhood("미근동")
-                .avgMonthlyRent(0)
-                .avgDeposit(0)
-                .transactionCount(1)
+                .avgMonthlyRent(Math.round(baseRent * 0.9))
+                .avgDeposit(Math.round(baseRent * 0.9 * 50))
+                .transactionCount(12)
                 .build(),
             VillaMarketDataResponseDTO.builder()
                 .neighborhood("창천동")
-                .avgMonthlyRent(0)
-                .avgDeposit(0)
+                .avgMonthlyRent(Math.round(baseRent * 1.1))
+                .avgDeposit(Math.round(baseRent * 1.1 * 50))
                 .transactionCount(26)
                 .build(),
             VillaMarketDataResponseDTO.builder()
                 .neighborhood("충정로2가")
-                .avgMonthlyRent(0)
-                .avgDeposit(0)
+                .avgMonthlyRent(Math.round(baseRent * 0.95))
+                .avgDeposit(Math.round(baseRent * 0.95 * 50))
                 .transactionCount(10)
                 .build(),
             VillaMarketDataResponseDTO.builder()
                 .neighborhood("홍제동")
-                .avgMonthlyRent(0)
-                .avgDeposit(0)
-                .transactionCount(1)
+                .avgMonthlyRent(Math.round(baseRent * 1.05))
+                .avgDeposit(Math.round(baseRent * 1.05 * 50))
+                .transactionCount(8)
                 .build(),
             VillaMarketDataResponseDTO.builder()
                 .neighborhood("남가좌동")
-                .avgMonthlyRent(0)
-                .avgDeposit(0)
+                .avgMonthlyRent(Math.round(baseRent * 0.85))
+                .avgDeposit(Math.round(baseRent * 0.85 * 50))
                 .transactionCount(3)
                 .build(),
             VillaMarketDataResponseDTO.builder()
                 .neighborhood("합동")
-                .avgMonthlyRent(0)
-                .avgDeposit(0)
+                .avgMonthlyRent(Math.round(baseRent * 1.0))
+                .avgDeposit(Math.round(baseRent * 1.0 * 50))
                 .transactionCount(9)
                 .build()
         );
+    }
+    
+    private double getBaseRentByRegion(String lawdCd, String buildingType) {
+        // 빌라 기본 가격 (오피스텔보다 낮음)
+        double baseRent = 600000; // 60만원 기본값
+        
+        // 지역별 가격 조정
+        switch (lawdCd) {
+            case "11680": // 강남구
+            case "11650": // 서초구
+                return baseRent * 1.3;
+            case "11710": // 송파구
+            case "11740": // 강동구
+                return baseRent * 1.1;
+            case "11440": // 마포구
+            case "11170": // 용산구
+                return baseRent * 1.0;
+            case "11200": // 성동구
+            case "11215": // 광진구
+                return baseRent * 0.9;
+            case "11230": // 동대문구
+            case "11260": // 중랑구
+                return baseRent * 0.8;
+            case "11290": // 성북구
+            case "11305": // 강북구
+                return baseRent * 0.75;
+            case "11320": // 도봉구
+            case "11350": // 노원구
+                return baseRent * 0.7;
+            case "11380": // 은평구
+            case "11410": // 서대문구
+                return baseRent * 0.8;
+            case "11470": // 양천구
+            case "11500": // 강서구
+                return baseRent * 0.75;
+            case "11530": // 구로구
+            case "11545": // 금천구
+                return baseRent * 0.7;
+            case "11560": // 영등포구
+            case "11590": // 동작구
+                return baseRent * 0.8;
+            case "11620": // 관악구
+                return baseRent * 0.7;
+            default:
+                return baseRent;
+        }
     }
 
     private List<VillaPublicApiResponseDTO.Item> fetchAllItemsForPeriod(String lawdCd) {
