@@ -599,9 +599,20 @@ public class ReportService {
      */
     public String generateShareUrl(String reportId, boolean isPremium) {
         try {
+            System.out.println("DEBUG - generateShareUrl called with reportId: " + reportId + ", isPremium: " + isPremium);
+            
+            // reportId가 null이거나 빈 문자열인 경우 기본 URL 반환
+            if (reportId == null || reportId.trim().isEmpty()) {
+                System.out.println("DEBUG - reportId is null or empty, returning default URL");
+                String baseUrl = "https://rental-lovat-theta.vercel.app";
+                return baseUrl + "/report";
+            }
+            
             // 리포트 ID로 리포트 조회
             Report report = reportRepository.findByPublicId(reportId)
                     .orElseThrow(() -> new RuntimeException("리포트를 찾을 수 없습니다: " + reportId));
+            
+            System.out.println("DEBUG - Report found: " + report.getReportId());
             
             // 공유 가능한 URL 생성 (프론트엔드 도메인 + 공개 경로)
             String baseUrl = "https://rental-lovat-theta.vercel.app";
@@ -609,8 +620,13 @@ public class ReportService {
                     "/report/" + reportId + "?type=premium" : 
                     "/report/" + reportId;
             
-            return baseUrl + sharePath;
+            String shareUrl = baseUrl + sharePath;
+            System.out.println("DEBUG - Generated share URL: " + shareUrl);
+            
+            return shareUrl;
         } catch (Exception e) {
+            System.out.println("ERROR - generateShareUrl failed: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("공유 URL 생성 중 오류가 발생했습니다: " + e.getMessage());
         }
     }

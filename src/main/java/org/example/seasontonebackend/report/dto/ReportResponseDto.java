@@ -14,6 +14,9 @@ import java.util.Map;
 @AllArgsConstructor
 public class ReportResponseDto {
 
+    // 리포트 ID (공개용)
+    private String publicId;
+    
     // 리포트 타입 (무료/프리미엄)
     private String reportType;
 
