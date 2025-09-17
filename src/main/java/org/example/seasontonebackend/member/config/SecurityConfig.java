@@ -18,6 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Arrays;
 
@@ -68,6 +69,18 @@ public class SecurityConfig {
                         } else {
                             throw new IllegalArgumentException("Unsupported OAuth provider: " + registrationId);
                         }
+                    })
+                    .failureHandler((request, response, exception) -> {
+                        System.err.println("=== OAuth Failure ===");
+                        System.err.println("Exception: " + exception.getMessage());
+                        exception.printStackTrace();
+                        
+                        String errorUrl = UriComponentsBuilder.fromUriString("https://rental-lovat-theta.vercel.app/auth/social-login")
+                                .queryParam("error", "oauth_failed")
+                                .queryParam("message", exception.getMessage())
+                                .build().toUriString();
+                        
+                        response.sendRedirect(errorUrl);
                     })
                 )
                 .build();
