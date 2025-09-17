@@ -18,14 +18,14 @@ spring:
       client:
         registration:
           google:
-            client-id: YOUR_GOOGLE_CLIENT_ID
-            client-secret: YOUR_GOOGLE_CLIENT_SECRET
+            client-id: ${GOOGLE_CLIENT_ID:YOUR_GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET:YOUR_GOOGLE_CLIENT_SECRET}
             scope:
               - profile
               - email
           kakao:
-            client-id: YOUR_KAKAO_CLIENT_ID
-            client-secret: YOUR_KAKAO_CLIENT_SECRET
+            client-id: ${KAKAO_CLIENT_ID:YOUR_KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET:YOUR_KAKAO_CLIENT_SECRET}
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             authorization-grant-type: authorization_code
             client-authentication-method: POST
