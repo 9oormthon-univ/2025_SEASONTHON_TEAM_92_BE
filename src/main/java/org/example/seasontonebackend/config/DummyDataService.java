@@ -7,7 +7,7 @@ import org.example.seasontonebackend.member.domain.Role;
 import org.example.seasontonebackend.member.domain.SocialType;
 import org.example.seasontonebackend.member.repository.MemberRepository;
 import org.example.seasontonebackend.smartdiagnosis.domain.entity.SmartMeasurement;
-import org.example.seasontonebackend.smartdiagnosis.repository.SmartMeasurementRepository;
+import org.example.seasontonebackend.smartdiagnosis.domain.repository.SmartMeasurementRepository;
 import org.example.seasontonebackend.diagnosis.domain.entity.DiagnosisResponse;
 import org.example.seasontonebackend.diagnosis.domain.DiagnosisScore;
 import org.example.seasontonebackend.diagnosis.domain.repository.DiagnosisResponseRepository;
@@ -73,8 +73,8 @@ public class DummyDataService {
                 .buildingType(buildingTypes[random.nextInt(buildingTypes.length)])
                 .contractType(contractTypes[random.nextInt(contractTypes.length)])
                 .security((long) (random.nextInt(10000) + 1000) * 10000) // 1000만원 ~ 1억원
-                .rent(random.nextInt(50) + 20) * 10000) // 20만원 ~ 70만원
-                .maintenanceFee(random.nextInt(20) + 5) * 10000) // 5만원 ~ 25만원
+                .rent((random.nextInt(50) + 20) * 10000) // 20만원 ~ 70만원
+                .maintenanceFee((random.nextInt(20) + 5) * 10000) // 5만원 ~ 25만원
                 .gpsVerified(random.nextBoolean())
                 .contractVerified(random.nextBoolean())
                 .dong(dongs[random.nextInt(dongs.length)])

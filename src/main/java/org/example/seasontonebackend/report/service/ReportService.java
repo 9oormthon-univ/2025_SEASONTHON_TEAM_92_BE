@@ -240,9 +240,9 @@ public class ReportService {
         // 전문가 상담 기능
         ReportResponseDto.ExpertConsultationDto expertConsultation = ReportResponseDto.ExpertConsultationDto.builder()
                 .available(true)
-                .consultationFee(50000)
+                .price(50000)
                 .duration("15분")
-                .nextAvailableSlot("오늘 오후 2시")
+                .contactInfo("02-1234-5678")
                 .build();
         
         // 공유 옵션
