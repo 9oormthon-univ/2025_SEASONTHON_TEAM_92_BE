@@ -80,8 +80,15 @@ public class KakaoService extends SimpleUrlAuthenticationSuccessHandler {
             // 기존 계정이 없으면 새로 생성
             if (member == null) {
                 isNewUser = true;
+                
+                // 이메일이 null이면 가짜 이메일 생성
+                String finalEmail = email;
+                if (finalEmail == null || finalEmail.isEmpty()) {
+                    finalEmail = "kakao_" + providerId + "@kakao.local";
+                }
+                
                 member = Member.builder()
-                        .email(email) // null일 수 있음
+                        .email(finalEmail) // null이 아닌 값 보장
                         .name(name != null ? name : "카카오사용자") // 닉네임이 없으면 기본값
                         .socialType(socialType)
                         .providerId(providerId)
