@@ -93,7 +93,6 @@ public class ReportResponseDto {
     @Getter
     @Builder
     @NoArgsConstructor
-    @AllArgsConstructor
     public static class ObjectiveMetricsDto {
         // 예: private PriceComparison marketPrice;
     }
