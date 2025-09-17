@@ -2,6 +2,10 @@ package org.example.seasontonebackend.location.application;
 
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Map;
@@ -73,7 +77,7 @@ public class GeocodingService {
                 .queryParam("category", "road")
                 .queryParam("format", "json")
                 .queryParam("errorFormat", "json")
-                .queryparam("key", apiKey)
+                .queryParam("key", apiKey)
                 .toUriString();
 
             log.info("VWorld 주소 검색 API 요청 URL: {}", url);
