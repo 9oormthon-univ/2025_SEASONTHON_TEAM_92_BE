@@ -55,7 +55,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(a -> a.requestMatchers("/", "/error", "/health", "/actuator/**", "/ping",
                         "/member/create", "/member/doLogin", "/oauth2/**", "/login/oauth2/**",
                         "/h2-console/**", "/api/location/preview", "/api/location/lawd-code", "/public/**",
-                        "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll().anyRequest().authenticated())
+                        "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/api/admin/dummy-data").permitAll().anyRequest().authenticated())
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .oauth2Login(oauth2 -> oauth2
                     .successHandler((request, response, authentication) -> {

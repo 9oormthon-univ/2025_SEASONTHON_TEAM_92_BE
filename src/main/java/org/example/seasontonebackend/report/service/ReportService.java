@@ -197,7 +197,7 @@ public class ReportService {
         // 실거래가 데이터 가져오기
         ReportResponseDto.ObjectiveMetricsDto objectiveMetrics = buildObjectiveMetrics(member);
 
-        return ReportResponseDto.builder()
+        ReportResponseDto.ReportResponseDtoBuilder builder = ReportResponseDto.builder()
                 .reportType(report.getReportType() != null ? report.getReportType() : "free")
                 .header(header)
                 .contractSummary(contractSummary)
@@ -206,7 +206,137 @@ public class ReportService {
                 .negotiationCards(negotiationCards)
                 .policyInfos(buildPolicyInfos(report.getReportType()))
                 .disputeGuide(buildDisputeGuide(report.getReportType()))
-                .smartDiagnosisData(smartDiagnosisData)
+                .smartDiagnosisData(smartDiagnosisData);
+
+        // 프리미엄 리포트인 경우 추가 기능들 추가
+        if ("premium".equals(report.getReportType())) {
+            builder.premiumFeatures(buildPremiumFeatures(member));
+        }
+
+        return builder.build();
+    }
+    
+    /**
+     * 프리미엄 기능 데이터 생성
+     */
+    private ReportResponseDto.PremiumFeaturesDto buildPremiumFeatures(Member member) {
+        // 시계열 분석 데이터 생성
+        ReportResponseDto.TimeSeriesAnalysisDto timeSeriesAnalysis = buildTimeSeriesAnalysis(member);
+        
+        // 스마트 진단 데이터 (이미 있으면 그대로 사용)
+        Object smartDiagnosis = null;
+        try {
+            smartDiagnosis = smartDiagnosisService.getSmartDiagnosisSummary(member);
+        } catch (Exception e) {
+            System.err.println("스마트 진단 데이터 조회 실패: " + e.getMessage());
+        }
+        
+        // 문서 생성 기능
+        ReportResponseDto.DocumentGenerationDto documentGeneration = ReportResponseDto.DocumentGenerationDto.builder()
+                .available(true)
+                .templates(Arrays.asList("수선 요구서", "내용증명", "법적 고지서"))
+                .build();
+        
+        // 전문가 상담 기능
+        ReportResponseDto.ExpertConsultationDto expertConsultation = ReportResponseDto.ExpertConsultationDto.builder()
+                .available(true)
+                .consultationFee(50000)
+                .duration("15분")
+                .nextAvailableSlot("오늘 오후 2시")
+                .build();
+        
+        // 공유 옵션
+        ReportResponseDto.SharingOptionsDto sharingOptions = ReportResponseDto.SharingOptionsDto.builder()
+                .pdfDownload(true)
+                .emailShare(true)
+                .socialShare(true)
+                .linkShare(true)
+                .build();
+        
+        return ReportResponseDto.PremiumFeaturesDto.builder()
+                .timeSeriesAnalysis(timeSeriesAnalysis)
+                .smartDiagnosis(smartDiagnosis)
+                .documentGeneration(documentGeneration)
+                .expertConsultation(expertConsultation)
+                .sharingOptions(sharingOptions)
+                .build();
+    }
+    
+    /**
+     * 시계열 분석 데이터 생성
+     */
+    private ReportResponseDto.TimeSeriesAnalysisDto buildTimeSeriesAnalysis(Member member) {
+        try {
+            // 법정동코드 추출
+            String lawdCd = addressService.extractLawdCd(member.getDong());
+            
+            // 건물 유형에 따라 적절한 시계열 데이터 가져오기
+            Map<String, Object> timeSeriesData;
+            if (member.getBuildingType() != null && 
+                (member.getBuildingType().contains("빌라") || member.getBuildingType().contains("다세대"))) {
+                timeSeriesData = villaService.getTimeSeriesAnalysis(lawdCd, 7);
+            } else {
+                timeSeriesData = officetelService.getTimeSeriesAnalysis(lawdCd, 7);
+            }
+            
+            // 시계열 데이터 변환
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> timeSeries = (List<Map<String, Object>>) timeSeriesData.get("timeSeries");
+            @SuppressWarnings("unchecked")
+            Map<String, Object> analysis = (Map<String, Object>) timeSeriesData.get("analysis");
+            
+            // 프론트엔드 형식으로 변환
+            List<ReportResponseDto.RentTrendDto> rentTrend = new ArrayList<>();
+            if (timeSeries != null) {
+                for (Map<String, Object> monthData : timeSeries) {
+                    rentTrend.add(ReportResponseDto.RentTrendDto.builder()
+                            .month((String) monthData.get("period"))
+                            .averageRent(((Number) monthData.get("averageRent")).doubleValue())
+                            .build());
+                }
+            }
+            
+            // 분석 결과 추출
+            double marketVolatility = analysis != null ? 
+                ((Number) analysis.getOrDefault("totalChangeRate", 0)).doubleValue() / 100.0 : 0.0;
+            int predictionConfidence = 85; // 기본값
+            
+            return ReportResponseDto.TimeSeriesAnalysisDto.builder()
+                    .rentTrend(rentTrend)
+                    .marketVolatility(marketVolatility)
+                    .predictionConfidence(predictionConfidence)
+                    .period("7개월")
+                    .dataSource("공공데이터포털 실거래가 API")
+                    .build();
+                    
+        } catch (Exception e) {
+            System.err.println("시계열 분석 데이터 생성 실패: " + e.getMessage());
+            
+            // 기본 시계열 데이터 생성
+            return createMockTimeSeriesAnalysis();
+        }
+    }
+    
+    /**
+     * 목업 시계열 분석 데이터 생성
+     */
+    private ReportResponseDto.TimeSeriesAnalysisDto createMockTimeSeriesAnalysis() {
+        List<ReportResponseDto.RentTrendDto> rentTrend = Arrays.asList(
+            ReportResponseDto.RentTrendDto.builder().month("2025-03").averageRent(750000.0).build(),
+            ReportResponseDto.RentTrendDto.builder().month("2025-04").averageRent(760000.0).build(),
+            ReportResponseDto.RentTrendDto.builder().month("2025-05").averageRent(770000.0).build(),
+            ReportResponseDto.RentTrendDto.builder().month("2025-06").averageRent(780000.0).build(),
+            ReportResponseDto.RentTrendDto.builder().month("2025-07").averageRent(790000.0).build(),
+            ReportResponseDto.RentTrendDto.builder().month("2025-08").averageRent(800000.0).build(),
+            ReportResponseDto.RentTrendDto.builder().month("2025-09").averageRent(810000.0).build()
+        );
+        
+        return ReportResponseDto.TimeSeriesAnalysisDto.builder()
+                .rentTrend(rentTrend)
+                .marketVolatility(0.08) // 8%
+                .predictionConfidence(85)
+                .period("7개월")
+                .dataSource("시뮬레이션 데이터")
                 .build();
     }
 

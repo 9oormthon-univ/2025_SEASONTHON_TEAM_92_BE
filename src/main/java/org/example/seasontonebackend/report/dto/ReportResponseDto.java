@@ -43,6 +43,9 @@ public class ReportResponseDto {
 
     // 8. 스마트 진단 데이터 (프리미엄 전용)
     private Object smartDiagnosisData;
+    
+    // 9. 프리미엄 기능들 (프리미엄 전용)
+    private PremiumFeaturesDto premiumFeatures;
 
     // --- 각 DTO의 상세 구조 ---
 
@@ -185,5 +188,59 @@ public class ReportResponseDto {
         private double averageDeposit; // 평균 보증금
         private double averageMonthlyRent; // 평균 월세
         private int transactionCount; // 거래 건수
+    }
+
+    // 프리미엄 기능 DTO들
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PremiumFeaturesDto {
+        private TimeSeriesAnalysisDto timeSeriesAnalysis;
+        private Object smartDiagnosis;
+        private DocumentGenerationDto documentGeneration;
+        private ExpertConsultationDto expertConsultation;
+        private SharingOptionsDto sharingOptions;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TimeSeriesAnalysisDto {
+        private List<RentTrendDto> rentTrend;
+        private double marketVolatility;
+        private int predictionConfidence;
+        private String period;
+        private String dataSource;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RentTrendDto {
+        private String month;
+        private double averageRent;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DocumentGenerationDto {
+        private boolean available;
+        private List<String> templates;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SharingOptionsDto {
+        private boolean pdfDownload;
+        private boolean emailShare;
+        private boolean socialShare;
+        private boolean linkShare;
     }
 }

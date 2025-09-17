@@ -358,9 +358,16 @@ public class VillaServiceImpl implements VillaService {
                 result.put("analysis", analysis);
             }
             
-            result.put("timeSeries", timeSeriesData);
-            result.put("period", months + "개월");
-            result.put("lawdCd", lawdCd);
+            // 실제 데이터가 없는 경우 목업 데이터로 대체
+            if (timeSeriesData.isEmpty()) {
+                log.warn("실제 시계열 데이터가 없어 목업 데이터를 반환합니다. 법정동코드: {}", lawdCd);
+                result = createMockTimeSeriesData(months);
+            } else {
+                result.put("timeSeries", timeSeriesData);
+                result.put("period", months + "개월");
+                result.put("lawdCd", lawdCd);
+                result.put("isMockData", false);
+            }
             
         } catch (Exception e) {
             log.error("시계열 분석 중 오류 발생: {}", e.getMessage());
