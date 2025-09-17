@@ -190,4 +190,58 @@ public class MemberController {
         return new RedirectView("/oauth2/authorization/kakao");
     }
 
+    /**
+     * 사용자 닉네임을 수정하는 API
+     */
+    @PutMapping("/nickname")
+    public ResponseEntity<?> updateNickname(@RequestBody Map<String, String> request, @AuthenticationPrincipal Member member) {
+        try {
+            System.out.println("=== 닉네임 수정 요청 ===");
+            System.out.println("Member: " + member.getId());
+            System.out.println("Request: " + request);
+            
+            if (member == null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "인증된 사용자 정보를 찾을 수 없습니다.");
+                return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+            }
+            
+            String nickname = request.get("nickname");
+            if (nickname == null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "닉네임이 제공되지 않았습니다.");
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            }
+            
+            memberService.updateNickname(member, nickname);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "닉네임이 성공적으로 변경되었습니다.");
+            response.put("nickname", nickname.trim());
+            
+            System.out.println("=== 닉네임 수정 완료 ===");
+            return new ResponseEntity<>(response, HttpStatus.OK);
+            
+        } catch (IllegalArgumentException e) {
+            System.err.println("닉네임 수정 오류: " + e.getMessage());
+            
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            
+        } catch (Exception e) {
+            System.err.println("닉네임 수정 오류: " + e.getMessage());
+            e.printStackTrace();
+            
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "닉네임 수정 중 오류가 발생했습니다: " + e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

@@ -23,6 +23,7 @@ spring:
             scope:
               - profile
               - email
+              - openid
           kakao:
             client-id: ${KAKAO_CLIENT_ID:YOUR_KAKAO_CLIENT_ID}
             client-secret: ${KAKAO_CLIENT_SECRET:YOUR_KAKAO_CLIENT_SECRET}

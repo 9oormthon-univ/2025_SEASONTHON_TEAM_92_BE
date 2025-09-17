@@ -147,8 +147,39 @@ public class MemberService {
             updated = true;
         }
         
+        if (updateData.containsKey("name") || updateData.containsKey("nickname")) {
+            String newName = (String) updateData.get("name");
+            if (newName == null) {
+                newName = (String) updateData.get("nickname");
+            }
+            if (newName != null && !newName.trim().isEmpty()) {
+                member.setName(newName.trim());
+                updated = true;
+            }
+        }
+        
         if (updated) {
             memberRepository.save(member);
         }
+    }
+    
+    /**
+     * 사용자 닉네임을 업데이트합니다.
+     * @param member 업데이트할 사용자
+     * @param nickname 새로운 닉네임
+     * @throws IllegalArgumentException 닉네임이 유효하지 않은 경우
+     */
+    public void updateNickname(Member member, String nickname) {
+        if (nickname == null || nickname.trim().isEmpty()) {
+            throw new IllegalArgumentException("닉네임은 비어있을 수 없습니다.");
+        }
+        
+        String trimmedNickname = nickname.trim();
+        if (trimmedNickname.length() > 20) {
+            throw new IllegalArgumentException("닉네임은 20자를 초과할 수 없습니다.");
+        }
+        
+        member.setName(trimmedNickname);
+        memberRepository.save(member);
     }
 }

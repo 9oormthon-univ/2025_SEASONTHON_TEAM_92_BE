@@ -43,7 +43,21 @@ public class GoogleService extends SimpleUrlAuthenticationSuccessHandler {
             String providerId = oAuth2User.getAttribute("sub");
             String email = oAuth2User.getAttribute("email");
             String name = oAuth2User.getAttribute("name");
+            String givenName = oAuth2User.getAttribute("given_name");
+            String familyName = oAuth2User.getAttribute("family_name");
             SocialType socialType = SocialType.GOOGLE;
+            
+            // 닉네임 우선순위: given_name > name > email의 @ 앞부분 > 기본값
+            String nickname = null;
+            if (givenName != null && !givenName.isEmpty()) {
+                nickname = givenName;
+            } else if (name != null && !name.isEmpty()) {
+                nickname = name;
+            } else if (email != null && !email.isEmpty() && email.contains("@")) {
+                nickname = email.split("@")[0];
+            } else {
+                nickname = "구글사용자";
+            }
 
             Member member = memberRepository.findByProviderId(providerId).orElse(null);
             boolean isNewUser = false;
@@ -71,7 +85,7 @@ public class GoogleService extends SimpleUrlAuthenticationSuccessHandler {
                     
                     member = Member.builder()
                             .email(finalEmail) // null이 아닌 값 보장
-                            .name(name != null ? name : "구글사용자")
+                            .name(nickname) // 개선된 닉네임 사용
                             .socialType(socialType)
                             .providerId(providerId)
                             .role(Role.User)
