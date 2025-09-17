@@ -50,11 +50,8 @@ public class LocationService {
                 throw new LocationException("GPS 좌표에서 주소를 찾을 수 없습니다.");
             }
 
-            // 2. 동네 정보 추출
-            String neighborhood = geocodingService.getNeighborhoodFromCoordinates(
-                    request.getLongitude(),
-                    request.getLatitude()
-            );
+            // 2. 표준화된 주소 정보 파싱
+            GeocodingService.AddressComponents addressComponents = geocodingService.parseAddressComponents(address);
 
             // 3. 위치 인증 범위 검증
             if (!geocodingService.isWithinAcceptableRange(
@@ -77,14 +74,14 @@ public class LocationService {
             LocationVerificationResponse response = LocationVerificationResponse.builder()
                     .userId(String.valueOf(member.getId())) // Member ID 사용
                     .address(address)
-                    .neighborhood(neighborhood)
+                    .neighborhood(addressComponents.getFormattedAddress()) // 표준화된 주소 형식 사용
                     .buildingName(request.getBuildingName())
                     .verified(true)
                     .message("위치 인증이 완료되었습니다.")
                     .build();
 
             log.info("✅ 위치 인증 완료!");
-            log.info("📋 인증 결과 - 주소: {}, 동네: {}", address, neighborhood);
+            log.info("📋 인증 결과 - 주소: {}, 동네: {}", address, addressComponents.getFormattedAddress());
 
             return response;
 
@@ -105,11 +102,11 @@ public class LocationService {
 
         try {
             String address = geocodingService.getAddressFromCoordinates(longitude, latitude);
-            String neighborhood = geocodingService.getNeighborhoodFromCoordinates(longitude, latitude);
+            GeocodingService.AddressComponents addressComponents = geocodingService.parseAddressComponents(address);
 
             return AddressPreviewResponse.builder()
                     .address(address)
-                    .neighborhood(neighborhood)
+                    .neighborhood(addressComponents.getFormattedAddress())
                     .latitude(latitude)
                     .longitude(longitude)
                     .build();
@@ -162,10 +159,8 @@ public class LocationService {
             // 4. 인증 성공 여부 판단 (70% 이상이면 성공)
             boolean isVerified = confidence >= 70;
 
-            // 5. 주소 정보 파싱
-            String[] addressParts = address.split(" ");
-            String gu = addressParts.length > 1 ? addressParts[1] : "";
-            String si = addressParts.length > 0 ? addressParts[0] : "";
+            // 5. 표준화된 주소 정보 파싱
+            GeocodingService.AddressComponents addressComponents = geocodingService.parseAddressComponents(address);
 
             // 6. 응답 생성
             GPSVerificationResponse response = GPSVerificationResponse.builder()
@@ -176,9 +171,9 @@ public class LocationService {
                     .accuracy(request.getAccuracy())
                     .timestamp(request.getTimestamp())
                     .address(address)
-                    .dong(neighborhood)
-                    .gu(gu)
-                    .si(si)
+                    .dong(addressComponents.getDong())
+                    .gu(addressComponents.getGu())
+                    .si(addressComponents.getSi())
                     .verificationMethod("gps")
                     .verifiedAt(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
                     .message(isVerified ? "GPS 인증이 완료되었습니다." : "GPS 정확도가 낮아 인증에 실패했습니다.")

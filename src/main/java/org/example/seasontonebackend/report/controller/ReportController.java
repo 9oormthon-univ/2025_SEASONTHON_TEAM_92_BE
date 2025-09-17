@@ -124,4 +124,28 @@ public class ReportController {
             return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    // 공유 URL 생성 API
+    @PostMapping("/report/share-url")
+    public ResponseEntity<?> generateShareUrl(@RequestBody Map<String, Object> request, @AuthenticationPrincipal Member member) {
+        try {
+            String reportId = (String) request.get("reportId");
+            Boolean isPremium = (Boolean) request.getOrDefault("isPremium", false);
+            
+            String shareUrl = reportService.generateShareUrl(reportId, isPremium);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", Map.of("shareUrl", shareUrl));
+            response.put("message", "공유 URL이 생성되었습니다.");
+            
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "공유 URL 생성 중 오류가 발생했습니다: " + e.getMessage());
+            
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

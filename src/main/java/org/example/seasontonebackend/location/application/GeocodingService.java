@@ -173,6 +173,86 @@ public class GeocodingService {
         return resultStr.isEmpty() ? "알 수 없는 동" : resultStr;
     }
 
+    /**
+     * 주소를 표준화된 형태로 파싱하여 AddressComponents 반환
+     */
+    public AddressComponents parseAddressComponents(String address) {
+        if (address == null || address.isEmpty()) {
+            return new AddressComponents("알 수 없음", "알 수 없음", "알 수 없음", "알 수 없음");
+        }
+
+        log.info("표준화된 주소 파싱 시작: {}", address);
+        String[] parts = address.split(" ");
+        
+        String si = "";
+        String gu = "";
+        String dong = "";
+        String fullAddress = address;
+        
+        // 시/도 찾기
+        for (String part : parts) {
+            if (part.endsWith("시") || part.endsWith("도") || part.endsWith("특별시") || part.endsWith("광역시")) {
+                si = part;
+                log.info("시/도 발견: {}", si);
+                break;
+            }
+        }
+        
+        // 구/군 찾기
+        for (String part : parts) {
+            if (part.endsWith("구") || part.endsWith("군")) {
+                gu = part;
+                log.info("구/군 발견: {}", gu);
+                break;
+            }
+        }
+        
+        // 동/읍/면 찾기
+        for (String part : parts) {
+            if (part.endsWith("동") || part.endsWith("면") || part.endsWith("읍")) {
+                dong = part;
+                log.info("동/읍/면 발견: {}", dong);
+                break;
+            }
+        }
+        
+        AddressComponents components = new AddressComponents(si, gu, dong, fullAddress);
+        log.info("표준화된 주소 파싱 완료: {}", components);
+        return components;
+    }
+
+    /**
+     * 주소 구성 요소를 담는 내부 클래스
+     */
+    public static class AddressComponents {
+        private final String si;      // 시/도
+        private final String gu;      // 구/군  
+        private final String dong;    // 동/읍/면
+        private final String fullAddress; // 전체 주소
+
+        public AddressComponents(String si, String gu, String dong, String fullAddress) {
+            this.si = si.isEmpty() ? "알 수 없음" : si;
+            this.gu = gu.isEmpty() ? "알 수 없음" : gu;
+            this.dong = dong.isEmpty() ? "알 수 없음" : dong;
+            this.fullAddress = fullAddress;
+        }
+
+        public String getSi() { return si; }
+        public String getGu() { return gu; }
+        public String getDong() { return dong; }
+        public String getFullAddress() { return fullAddress; }
+        
+        public String getFormattedAddress() {
+            return String.format("%s %s %s", si, gu, dong).trim();
+        }
+
+        @Override
+        public String toString() {
+            return String.format("AddressComponents{si='%s', gu='%s', dong='%s', full='%s'}", 
+                    si, gu, dong, fullAddress);
+        }
+    }
+
 
     /**
      * 위치 인증 범위 검증 (개발 단계에서는 항상 true)

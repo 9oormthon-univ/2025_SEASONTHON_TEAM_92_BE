@@ -593,4 +593,25 @@ public class ReportService {
                 return "객관적 데이터와 함께 제시하면 성공 확률이 높아집니다.";
         }
     }
+
+    /**
+     * 공유 가능한 URL 생성
+     */
+    public String generateShareUrl(String reportId, boolean isPremium) {
+        try {
+            // 리포트 ID로 리포트 조회
+            Report report = reportRepository.findByPublicId(reportId)
+                    .orElseThrow(() -> new RuntimeException("리포트를 찾을 수 없습니다: " + reportId));
+            
+            // 공유 가능한 URL 생성 (프론트엔드 도메인 + 공개 경로)
+            String baseUrl = "https://rental-lovat-theta.vercel.app";
+            String sharePath = isPremium ? 
+                    "/report/" + reportId + "?type=premium" : 
+                    "/report/" + reportId;
+            
+            return baseUrl + sharePath;
+        } catch (Exception e) {
+            throw new RuntimeException("공유 URL 생성 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
 }
