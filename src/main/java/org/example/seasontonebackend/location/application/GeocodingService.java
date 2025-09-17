@@ -1,10 +1,11 @@
 package org.example.seasontonebackend.location.application;
 
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.json.JSONArray;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * VWorld API를 사용한 지오코딩 서비스 (SeasonToneBackend용)
@@ -24,6 +25,19 @@ public class GeocodingService {
     @Value("${vworld.api.enabled:true}")
     private boolean apiEnabled;
 
+    // 주소 -> 법정동 코드 변환을 위한 캐시/폴백 맵
+    private static final Map<String, String> LAWD_CODE_MAP = Map.ofEntries(
+        Map.entry("강남구", "11680"), Map.entry("강동구", "11740"), Map.entry("강북구", "11305"),
+        Map.entry("강서구", "11500"), Map.entry("관악구", "11620"), Map.entry("광진구", "11215"),
+        Map.entry("구로구", "11530"), Map.entry("금천구", "11545"), Map.entry("노원구", "11350"),
+        Map.entry("도봉구", "11320"), Map.entry("동대문구", "11230"), Map.entry("동작구", "11590"),
+        Map.entry("마포구", "11410"), Map.entry("서대문구", "11440"), Map.entry("서초구", "11650"),
+        Map.entry("성동구", "11200"), Map.entry("성북구", "11290"), Map.entry("송파구", "11710"),
+        Map.entry("양천구", "11470"), Map.entry("영등포구", "11560"), Map.entry("용산구", "11170"),
+        Map.entry("은평구", "11380"), Map.entry("종로구", "11110"), Map.entry("중구", "11140"),
+        Map.entry("중랑구", "11260")
+    );
+
     public GeocodingService() {
         this.restTemplate = new RestTemplate();
     }
@@ -34,6 +48,65 @@ public class GeocodingService {
         log.info("VWorld API URL loaded: {}", apiUrl);
         log.info("VWorld API Key loaded: {}", apiKey != null && !apiKey.isEmpty() ? "********" : "null");
         log.info("------------------------------------");
+    }
+
+    /**
+     * 주소 문자열로부터 법정동 코드를 조회. VWorld API를 우선 사용하고, 실패 시 내부 맵에서 찾습니다.
+     */
+    public String getLawdCodeFromAddress(String address) {
+        log.info("주소로부터 법정동 코드 조회 시작: {}", address);
+        if (!apiEnabled) {
+            log.warn("VWorld API is disabled. Falling back to local map.");
+            return findLawdCodeFromMap(address);
+        }
+
+        try {
+            String url = UriComponentsBuilder.fromHttpUrl(apiUrl)
+                .queryParam("service", "search")
+                .queryParam("request", "search")
+                .queryParam("version", "2.0")
+                .queryParam("crs", "epsg:4326")
+                .queryParam("size", "1")
+                .queryParam("page", "1")
+                .queryParam("query", address)
+                .queryParam("type", "address")
+                .queryParam("category", "road")
+                .queryParam("format", "json")
+                .queryParam("errorFormat", "json")
+                .queryparam("key", apiKey)
+                .toUriString();
+
+            log.info("VWorld 주소 검색 API 요청 URL: {}", url);
+            String response = restTemplate.getForObject(url, String.class);
+            log.info("VWorld 주소 검색 API 응답: {}", response);
+
+            JSONObject jsonResponse = new JSONObject(response);
+            String status = jsonResponse.getJSONObject("response").getString("status");
+
+            if ("OK".equals(status)) {
+                JSONArray items = jsonResponse.getJSONObject("response").getJSONObject("result").getJSONObject("items").getJSONArray("item");
+                if (items.length() > 0) {
+                    String lawdCd = items.getJSONObject(0).getJSONObject("address").getString("bcode");
+                    if (lawdCd != null && !lawdCd.isEmpty()) {
+                        log.info("VWorld API에서 법정동 코드 조회 성공: {}", lawdCd);
+                        return lawdCd.substring(0, 5); // 10자리 코드 중 앞 5자리(구 코드)만 사용
+                    }
+                }
+            }
+            log.warn("VWorld API에서 주소를 찾지 못했습니다. 로컬 맵에서 다시 시도합니다.");
+            return findLawdCodeFromMap(address);
+        } catch (Exception e) {
+            log.error("VWorld 주소 검색 API 호출 실패. 로컬 맵에서 다시 시도합니다. 에러: {}", e.getMessage());
+            return findLawdCodeFromMap(address);
+        }
+    }
+
+    private String findLawdCodeFromMap(String address) {
+        return LAWD_CODE_MAP.entrySet().stream()
+            .filter(entry -> address.contains(entry.getKey()))
+            .map(Map.Entry::getValue)
+            .findFirst()
+            .orElse("11410"); // 기본값: 마포구
     }
 
     /**

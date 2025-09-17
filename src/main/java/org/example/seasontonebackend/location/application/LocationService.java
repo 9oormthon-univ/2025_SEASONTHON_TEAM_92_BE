@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 위치 인증 비즈니스 로직 서비스
@@ -29,6 +30,14 @@ public class LocationService {
 
     private final GeocodingService geocodingService;
     private final MemberRepository memberRepository; // MemberRepository 주입
+
+    /**
+     * 주소로부터 법정동 코드를 조회합니다.
+     */
+    public Map<String, String> getLawdCode(String address) {
+        String lawdCode = geocodingService.getLawdCodeFromAddress(address);
+        return Map.of("lawdCd", lawdCode);
+    }
 
     /**
      * GPS 좌표를 이용한 위치 인증

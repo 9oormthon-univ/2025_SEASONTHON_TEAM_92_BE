@@ -131,6 +131,29 @@ public class LocationController {
     }
 
     /**
+     * 주소 문자열로부터 법정동 코드를 조회 (인증 없이)
+     */
+    @GetMapping("/lawd-code")
+    public ResponseEntity<Map<String, Object>> getLawdCodeFromAddress(@RequestParam String address) {
+        log.info("🔎 법정동 코드 조회 요청 - 주소: {}", address);
+        try {
+            Map<String, String> lawdCodeMap = locationService.getLawdCode(address);
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("data", lawdCodeMap);
+            result.put("message", "법정동 코드 조회 성공");
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("❌ 법정동 코드 조회 실패", e);
+            Map<String, Object> errorResult = new HashMap<>();
+            errorResult.put("success", false);
+            errorResult.put("data", null);
+            errorResult.put("message", "법정동 코드 조회 중 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(errorResult);
+        }
+    }
+
+    /**
      * API 상태 확인
      */
     @GetMapping("/health")
