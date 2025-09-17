@@ -30,7 +30,7 @@ public class JwtTokenProvider {
         String token = Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() * expiration * 60 * 1000L))
+                .setExpiration(new Date(now.getTime() + expiration * 60 * 1000L))
                 .signWith(SECRET_KEY)
                 .compact();
 
