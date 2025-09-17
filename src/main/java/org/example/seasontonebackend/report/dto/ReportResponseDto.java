@@ -29,8 +29,8 @@ public class ReportResponseDto {
     // 3. 주관적 지표 (기획안 STEP 2)
     private SubjectiveMetricsDto subjectiveMetrics;
 
-    // 4. 객관적 지표 (기획안 STEP 4-1) - 추후 구현 예정
-    // private ObjectiveMetricsDto objectiveMetrics;
+    // 4. 객관적 지표 (기획안 STEP 4-1)
+    private ObjectiveMetricsDto objectiveMetrics;
 
     // 5. 협상 카드 (기획안 STEP 3-3)
     private List<NegotiationCardDto> negotiationCards;
@@ -92,13 +92,6 @@ public class ReportResponseDto {
         private double neighborhoodAverage;
     }
 
-    // 객관적 지표 DTO - 추후 필드 정의
-    @Getter
-    @Builder
-    @NoArgsConstructor
-    public static class ObjectiveMetricsDto {
-        // 예: private PriceComparison marketPrice;
-    }
 
     @Getter
     @Builder
@@ -165,5 +158,32 @@ public class ReportResponseDto {
         private int price; // 상담 비용
         private String duration; // 상담 시간
         private String contactInfo; // 연락처
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ObjectiveMetricsDto {
+        private String marketAnalysis; // 시장 분석 텍스트
+        private double averageMarketDeposit; // 시장 평균 보증금
+        private double averageMarketRent; // 시장 평균 월세
+        private double userDeposit; // 사용자 보증금
+        private double userRent; // 사용자 월세
+        private String priceComparison; // 가격 비교 결과
+        private List<NeighborhoodComparisonDto> neighborhoodComparisons; // 주변 동네 비교
+        private String dataSource; // 데이터 출처
+        private String lastUpdated; // 마지막 업데이트
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class NeighborhoodComparisonDto {
+        private String neighborhoodName; // 동네명
+        private double averageDeposit; // 평균 보증금
+        private double averageMonthlyRent; // 평균 월세
+        private int transactionCount; // 거래 건수
     }
 }

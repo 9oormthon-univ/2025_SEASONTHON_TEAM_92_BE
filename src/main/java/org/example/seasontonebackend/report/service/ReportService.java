@@ -10,6 +10,8 @@ import org.example.seasontonebackend.report.dto.ReportResponseDto;
 import org.example.seasontonebackend.report.repository.ReportRepository;
 import org.example.seasontonebackend.smartdiagnosis.application.SmartDiagnosisService;
 import org.example.seasontonebackend.smartdiagnosis.dto.SmartDiagnosisResponseDTO;
+import org.example.seasontonebackend.officetel.application.OfficetelService;
+import org.example.seasontonebackend.officetel.dto.OfficetelMarketDataResponseDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,6 +31,7 @@ public class ReportService {
     private final MemberRepository memberRepository;
     private final DiagnosisResponseRepository diagnosisResponseRepository;
     private final SmartDiagnosisService smartDiagnosisService;
+    private final OfficetelService officetelService;
     
     // 동시 리포트 생성을 위한 스레드 풀 (최대 10개 동시 처리)
     private final ExecutorService executorService = Executors.newFixedThreadPool(10);
@@ -36,11 +39,12 @@ public class ReportService {
     // JSON 변환을 위한 ObjectMapper
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public ReportService(ReportRepository reportRepository, MemberRepository memberRepository, DiagnosisResponseRepository diagnosisResponseRepository, SmartDiagnosisService smartDiagnosisService) {
+    public ReportService(ReportRepository reportRepository, MemberRepository memberRepository, DiagnosisResponseRepository diagnosisResponseRepository, SmartDiagnosisService smartDiagnosisService, OfficetelService officetelService) {
         this.reportRepository = reportRepository;
         this.memberRepository = memberRepository;
         this.diagnosisResponseRepository = diagnosisResponseRepository;
         this.smartDiagnosisService = smartDiagnosisService;
+        this.officetelService = officetelService;
     }
 
     @Transactional
@@ -183,11 +187,15 @@ public class ReportService {
                 .contractVerified(member.getContractVerified() != null && member.getContractVerified())
                 .build();
 
+        // 실거래가 데이터 가져오기
+        ReportResponseDto.ObjectiveMetricsDto objectiveMetrics = buildObjectiveMetrics(member);
+
         return ReportResponseDto.builder()
                 .reportType(report.getReportType() != null ? report.getReportType() : "free")
                 .header(header)
                 .contractSummary(contractSummary)
                 .subjectiveMetrics(subjectiveMetrics)
+                .objectiveMetrics(objectiveMetrics)
                 .negotiationCards(negotiationCards)
                 .policyInfos(buildPolicyInfos(report.getReportType()))
                 .disputeGuide(buildDisputeGuide(report.getReportType()))
@@ -592,6 +600,226 @@ public class ReportService {
             default:
                 return "객관적 데이터와 함께 제시하면 성공 확률이 높아집니다.";
         }
+    }
+
+    /**
+     * 실거래가 데이터를 기반으로 객관적 지표 생성
+     */
+    private ReportResponseDto.ObjectiveMetricsDto buildObjectiveMetrics(Member member) {
+        try {
+            // 법정동코드 추출 (간단한 예시 - 실제로는 주소를 법정동코드로 변환하는 로직 필요)
+            String lawdCd = extractLawdCd(member.getDong());
+            
+            if (lawdCd == null || lawdCd.isEmpty()) {
+                return createMockObjectiveMetrics(member);
+            }
+            
+            // 실제 API 호출
+            List<OfficetelMarketDataResponseDTO> jeonseData = officetelService.getJeonseMarketData(lawdCd);
+            List<OfficetelMarketDataResponseDTO> monthlyRentData = officetelService.getMonthlyRentMarketData(lawdCd);
+            
+            // 데이터 분석 및 리포트 생성
+            return analyzeMarketData(jeonseData, monthlyRentData, member);
+            
+        } catch (Exception e) {
+            System.err.println("실거래가 데이터 조회 실패: " + e.getMessage());
+            return createMockObjectiveMetrics(member);
+        }
+    }
+    
+    /**
+     * 주소에서 법정동코드 추출 (간단한 예시)
+     */
+    private String extractLawdCd(String dong) {
+        if (dong == null || dong.isEmpty()) {
+            return null;
+        }
+        
+        // 간단한 매핑 (실제로는 더 정교한 주소-법정동코드 매핑 필요)
+        if (dong.contains("강남구")) return "11680";
+        if (dong.contains("서초구")) return "11650";
+        if (dong.contains("송파구")) return "11710";
+        if (dong.contains("강동구")) return "11740";
+        if (dong.contains("마포구")) return "11440";
+        if (dong.contains("용산구")) return "11170";
+        if (dong.contains("성동구")) return "11200";
+        if (dong.contains("광진구")) return "11215";
+        if (dong.contains("동대문구")) return "11230";
+        if (dong.contains("중랑구")) return "11260";
+        if (dong.contains("성북구")) return "11290";
+        if (dong.contains("강북구")) return "11305";
+        if (dong.contains("도봉구")) return "11320";
+        if (dong.contains("노원구")) return "11350";
+        if (dong.contains("은평구")) return "11380";
+        if (dong.contains("서대문구")) return "11410";
+        if (dong.contains("양천구")) return "11470";
+        if (dong.contains("강서구")) return "11500";
+        if (dong.contains("구로구")) return "11530";
+        if (dong.contains("금천구")) return "11545";
+        if (dong.contains("영등포구")) return "11560";
+        if (dong.contains("동작구")) return "11590";
+        if (dong.contains("관악구")) return "11620";
+        if (dong.contains("서초구")) return "11650";
+        if (dong.contains("강남구")) return "11680";
+        if (dong.contains("송파구")) return "11710";
+        if (dong.contains("강동구")) return "11740";
+        
+        return null; // 매핑되지 않은 경우
+    }
+    
+    /**
+     * 실제 시장 데이터 분석
+     */
+    private ReportResponseDto.ObjectiveMetricsDto analyzeMarketData(
+            List<OfficetelMarketDataResponseDTO> jeonseData,
+            List<OfficetelMarketDataResponseDTO> monthlyRentData,
+            Member member) {
+        
+        // 전세 데이터 분석
+        double avgJeonseDeposit = jeonseData.stream()
+                .mapToDouble(OfficetelMarketDataResponseDTO::getAvgDeposit)
+                .average()
+                .orElse(0.0);
+        
+        // 월세 데이터 분석
+        double avgMonthlyRent = monthlyRentData.stream()
+                .mapToDouble(OfficetelMarketDataResponseDTO::getAvgMonthlyRent)
+                .average()
+                .orElse(0.0);
+        
+        double avgDeposit = monthlyRentData.stream()
+                .mapToDouble(OfficetelMarketDataResponseDTO::getAvgDeposit)
+                .average()
+                .orElse(0.0);
+        
+        // 사용자 계약 조건과 비교
+        Long userDeposit = member.getSecurity();
+        Integer userRent = member.getRent();
+        
+        // 시세 대비 분석
+        String marketAnalysis = generateMarketAnalysis(userDeposit, userRent, avgDeposit, avgMonthlyRent);
+        
+        // 주변 동네 비교 데이터
+        List<ReportResponseDto.NeighborhoodComparisonDto> neighborhoodComparisons = jeonseData.stream()
+                .limit(5) // 상위 5개 동네
+                .map(data -> ReportResponseDto.NeighborhoodComparisonDto.builder()
+                        .neighborhoodName(data.getNeighborhood())
+                        .averageDeposit(data.getAvgDeposit())
+                        .averageMonthlyRent(data.getAvgMonthlyRent())
+                        .transactionCount(data.getTransactionCount())
+                        .build())
+                .collect(Collectors.toList());
+        
+        return ReportResponseDto.ObjectiveMetricsDto.builder()
+                .marketAnalysis(marketAnalysis)
+                .averageMarketDeposit(avgDeposit)
+                .averageMarketRent(avgMonthlyRent)
+                .userDeposit(userDeposit != null ? userDeposit.doubleValue() : 0.0)
+                .userRent(userRent != null ? userRent.doubleValue() : 0.0)
+                .priceComparison(calculatePriceComparison(userDeposit, userRent, avgDeposit, avgMonthlyRent))
+                .neighborhoodComparisons(neighborhoodComparisons)
+                .dataSource("공공데이터포털 실거래가 API")
+                .lastUpdated(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd")))
+                .build();
+    }
+    
+    /**
+     * 시장 분석 텍스트 생성
+     */
+    private String generateMarketAnalysis(Long userDeposit, Integer userRent, double avgDeposit, double avgMonthlyRent) {
+        if (userDeposit == null || userRent == null) {
+            return "계약 조건 정보가 없어 시세 비교가 어렵습니다.";
+        }
+        
+        double depositDiff = userDeposit - avgDeposit;
+        double rentDiff = userRent - avgMonthlyRent;
+        
+        StringBuilder analysis = new StringBuilder();
+        
+        if (Math.abs(depositDiff) < avgDeposit * 0.1) {
+            analysis.append("보증금은 시세와 비슷한 수준입니다. ");
+        } else if (depositDiff > 0) {
+            analysis.append(String.format("보증금이 시세보다 %.0f만원 높습니다. ", depositDiff / 10000));
+        } else {
+            analysis.append(String.format("보증금이 시세보다 %.0f만원 낮습니다. ", Math.abs(depositDiff) / 10000));
+        }
+        
+        if (Math.abs(rentDiff) < avgMonthlyRent * 0.1) {
+            analysis.append("월세도 시세와 비슷한 수준입니다.");
+        } else if (rentDiff > 0) {
+            analysis.append(String.format("월세가 시세보다 %.0f만원 높습니다.", rentDiff / 10000));
+        } else {
+            analysis.append(String.format("월세가 시세보다 %.0f만원 낮습니다.", Math.abs(rentDiff) / 10000));
+        }
+        
+        return analysis.toString();
+    }
+    
+    /**
+     * 가격 비교 분석
+     */
+    private String calculatePriceComparison(Long userDeposit, Integer userRent, double avgDeposit, double avgMonthlyRent) {
+        if (userDeposit == null || userRent == null) {
+            return "계약 조건 정보 부족";
+        }
+        
+        double depositRatio = (userDeposit / avgDeposit - 1) * 100;
+        double rentRatio = (userRent / avgMonthlyRent - 1) * 100;
+        
+        if (depositRatio > 10 && rentRatio > 10) {
+            return "시세 대비 높음";
+        } else if (depositRatio < -10 && rentRatio < -10) {
+            return "시세 대비 낮음";
+        } else {
+            return "시세 대비 적정";
+        }
+    }
+    
+    /**
+     * 목업 객관적 지표 생성 (API 실패 시)
+     */
+    private ReportResponseDto.ObjectiveMetricsDto createMockObjectiveMetrics(Member member) {
+        Long userDeposit = member.getSecurity();
+        Integer userRent = member.getRent();
+        
+        // 목업 데이터
+        double avgDeposit = 50000000.0; // 5000만원
+        double avgRent = 800000.0; // 80만원
+        
+        String marketAnalysis = generateMarketAnalysis(userDeposit, userRent, avgDeposit, avgRent);
+        
+        List<ReportResponseDto.NeighborhoodComparisonDto> mockComparisons = Arrays.asList(
+            ReportResponseDto.NeighborhoodComparisonDto.builder()
+                .neighborhoodName("주변 동네 1")
+                .averageDeposit(45000000.0)
+                .averageMonthlyRent(750000.0)
+                .transactionCount(12)
+                .build(),
+            ReportResponseDto.NeighborhoodComparisonDto.builder()
+                .neighborhoodName("주변 동네 2")
+                .averageDeposit(52000000.0)
+                .averageMonthlyRent(820000.0)
+                .transactionCount(8)
+                .build(),
+            ReportResponseDto.NeighborhoodComparisonDto.builder()
+                .neighborhoodName("주변 동네 3")
+                .averageDeposit(48000000.0)
+                .averageMonthlyRent(780000.0)
+                .transactionCount(15)
+                .build()
+        );
+        
+        return ReportResponseDto.ObjectiveMetricsDto.builder()
+                .marketAnalysis(marketAnalysis)
+                .averageMarketDeposit(avgDeposit)
+                .averageMarketRent(avgRent)
+                .userDeposit(userDeposit != null ? userDeposit.doubleValue() : 0.0)
+                .userRent(userRent != null ? userRent.doubleValue() : 0.0)
+                .priceComparison(calculatePriceComparison(userDeposit, userRent, avgDeposit, avgRent))
+                .neighborhoodComparisons(mockComparisons)
+                .dataSource("목업 데이터 (실제 API 연동 필요)")
+                .lastUpdated(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy.MM.dd")))
+                .build();
     }
 
     /**
