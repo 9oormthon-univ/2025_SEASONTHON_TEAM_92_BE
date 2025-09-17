@@ -37,8 +37,14 @@ public class KakaoService extends SimpleUrlAuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         try {
+            System.out.println("=== Kakao OAuth Start ===");
+            System.out.println("Authentication: " + authentication);
+            
             OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
             OAuth2User oAuth2User = oauthToken.getPrincipal();
+            
+            System.out.println("OAuth2User: " + oAuth2User);
+            System.out.println("OAuth2User attributes: " + oAuth2User.getAttributes());
 
         String providerId = oAuth2User.getAttribute("id").toString();
         String email = null;
