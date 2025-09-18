@@ -295,13 +295,17 @@ public class VillaServiceImpl implements VillaService {
     public Map<String, Object> getTimeSeriesAnalysis(String lawdCd, int months) {
         log.info("시계열 분석 시작 - 법정동코드: {}, 분석 기간: {}개월", lawdCd, months);
         
+        // API 호출 제한: 최대 6개월로 제한
+        int limitedMonths = Math.min(months, 6);
+        log.info("API 호출 제한으로 {}개월로 제한", limitedMonths);
+        
         Map<String, Object> result = new HashMap<>();
         List<Map<String, Object>> timeSeriesData = new ArrayList<>();
         
         try {
-            // 지정된 개월 수만큼 과거 데이터 수집
+            // 제한된 개월 수만큼 과거 데이터 수집
             YearMonth currentMonth = YearMonth.now();
-            for (int i = months - 1; i >= 0; i--) {
+            for (int i = limitedMonths - 1; i >= 0; i--) {
                 YearMonth targetMonth = currentMonth.minusMonths(i);
                 String dealYmd = targetMonth.format(DateTimeFormatter.ofPattern("yyyyMM"));
                 
@@ -344,7 +348,7 @@ public class VillaServiceImpl implements VillaService {
                 double firstRent = (Double) firstMonth.get("averageRent");
                 double lastRent = (Double) lastMonth.get("averageRent");
                 double changeRate = ((lastRent - firstRent) / firstRent) * 100;
-                double monthlyChangeRate = changeRate / months;
+                double monthlyChangeRate = changeRate / limitedMonths;
                 
                 Map<String, Object> analysis = new HashMap<>();
                 analysis.put("totalChangeRate", Math.round(changeRate * 100) / 100.0);
@@ -361,10 +365,10 @@ public class VillaServiceImpl implements VillaService {
             // 실제 데이터가 없는 경우 목업 데이터로 대체
             if (timeSeriesData.isEmpty()) {
                 log.warn("실제 시계열 데이터가 없어 목업 데이터를 반환합니다. 법정동코드: {}", lawdCd);
-                result = createMockTimeSeriesData(months);
+                result = createMockTimeSeriesData(limitedMonths);
             } else {
                 result.put("timeSeries", timeSeriesData);
-                result.put("period", months + "개월");
+                result.put("period", limitedMonths + "개월");
                 result.put("lawdCd", lawdCd);
                 result.put("isMockData", false);
             }
@@ -372,7 +376,7 @@ public class VillaServiceImpl implements VillaService {
         } catch (Exception e) {
             log.error("시계열 분석 중 오류 발생: {}", e.getMessage());
             // 목업 데이터 반환
-            result = createMockTimeSeriesData(months);
+            result = createMockTimeSeriesData(limitedMonths);
         }
         
         return result;
@@ -417,12 +421,11 @@ public class VillaServiceImpl implements VillaService {
     }
     
     private List<VillaTransactionResponseDTO> fetchVillaDataByMonth(String lawdCd, String dealYmd) {
-        // 기존 빌라 데이터 조회 로직을 월별로 호출
+        // 직접 API 호출하여 중복 호출 방지
         try {
-            Map<String, List<VillaTransactionResponseDTO>> data = getVillaRentData(lawdCd);
-            return data.getOrDefault("transactions", Collections.emptyList())
-                    .stream()
-                    .filter(t -> t.getContractDate() != null && t.getContractDate().startsWith(dealYmd.substring(0, 6)))
+            List<VillaPublicApiResponseDTO.Item> monthlyItems = callApiAndParseXml(lawdCd, dealYmd);
+            return monthlyItems.stream()
+                    .map(villaConverter::convertToTransactionDTO)
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("월별 빌라 데이터 조회 실패: {}", e.getMessage());
