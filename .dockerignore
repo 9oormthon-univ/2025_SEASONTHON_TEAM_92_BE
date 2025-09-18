@@ -3,8 +3,6 @@
 build/
 !build/libs/
 gradle/
-gradlew
-gradlew.bat
 
 # IDE 파일 제외
 .idea/
