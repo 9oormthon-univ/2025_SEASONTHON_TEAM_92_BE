@@ -71,8 +71,8 @@ logging:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: kwh0912@gmail.com
-    password: pccvzejninsyynmr
+    username: ${SPRING_MAIL_USERNAME}
+    password: ${SPRING_MAIL_PASSWORD}
     properties:
       mail:
         smtp:

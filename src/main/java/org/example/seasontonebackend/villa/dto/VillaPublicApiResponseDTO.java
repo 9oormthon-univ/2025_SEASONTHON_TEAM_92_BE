@@ -41,40 +41,40 @@ public class VillaPublicApiResponseDTO {
         @JacksonXmlProperty(localName = "연립다세대")
         private String buildingName;
 
-        @JacksonXmlProperty(localName = "보증금액")
+        @JacksonXmlProperty(localName = "deposit")
         private String deposit;
 
-        @JacksonXmlProperty(localName = "월세금액")
+        @JacksonXmlProperty(localName = "monthlyRent")
         private String monthlyRent;
 
-        @JacksonXmlProperty(localName = "전용면적")
+        @JacksonXmlProperty(localName = "totalFloorAr")
         private double area;
 
-        @JacksonXmlProperty(localName = "년")
+        @JacksonXmlProperty(localName = "dealYear")
         private int year;
 
-        @JacksonXmlProperty(localName = "월")
+        @JacksonXmlProperty(localName = "dealMonth")
         private int month;
 
-        @JacksonXmlProperty(localName = "일")
+        @JacksonXmlProperty(localName = "dealDay")
         private int day;
 
-        @JacksonXmlProperty(localName = "시군구")
+        @JacksonXmlProperty(localName = "sggCd")
         private String district; // 시군구
 
-        @JacksonXmlProperty(localName = "법정동")
+        @JacksonXmlProperty(localName = "umdNm")
         private String neighborhood; // 법정동
 
-        @JacksonXmlProperty(localName = "층")
-        private String floor; // 층
-
-        @JacksonXmlProperty(localName = "건축년도")
+        @JacksonXmlProperty(localName = "buildYear")
         private String buildYear; // 건축년도
 
-        @JacksonXmlProperty(localName = "계약구분")
+        @JacksonXmlProperty(localName = "contractType")
         private String contractType; // 계약구분
 
-        @JacksonXmlProperty(localName = "계약기간")
+        @JacksonXmlProperty(localName = "contractTerm")
         private String contractTerm; // 계약기간
+
+        @JacksonXmlProperty(localName = "houseType")
+        private String houseType; // 주택유형
     }
 }

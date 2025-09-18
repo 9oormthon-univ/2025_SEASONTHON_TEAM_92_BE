@@ -25,7 +25,7 @@ public class VillaConverter {
                 .monthlyRent(Optional.ofNullable(item.getMonthlyRent()).orElse("0").trim())
                 .area(String.valueOf(item.getArea()))
                 .contractDate(contractDate)
-                .floor(Optional.ofNullable(item.getFloor()).orElse("N/A").trim())
+                .floor("N/A") // 빌라 API에는 층 정보가 없음
                 .buildYear(Optional.ofNullable(item.getBuildYear()).orElse("N/A").trim())
                 .contractType(Optional.ofNullable(item.getContractType()).orElse("N/A").trim())
                 .contractTerm(Optional.ofNullable(item.getContractTerm()).orElse("N/A").trim())
