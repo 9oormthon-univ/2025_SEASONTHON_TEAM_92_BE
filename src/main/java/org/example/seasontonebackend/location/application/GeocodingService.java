@@ -48,10 +48,11 @@ public class GeocodingService {
 
     @jakarta.annotation.PostConstruct
     public void init() {
-        log.info("--- GeocodingService Initialization ---");
+        log.info("=== GeocodingService Initialization ===");
         log.info("VWorld API URL loaded: {}", apiUrl);
         log.info("VWorld API Key loaded: {}", apiKey != null && !apiKey.isEmpty() ? "********" : "null");
-        log.info("------------------------------------");
+        log.info("VWorld API Enabled: {}", apiEnabled);
+        log.info("=========================================");
     }
 
     /**
@@ -59,6 +60,7 @@ public class GeocodingService {
      */
     public String getLawdCodeFromAddress(String address) {
         log.info("주소로부터 법정동 코드 조회 시작: {}", address);
+        
         if (!apiEnabled) {
             log.warn("VWorld API is disabled. Falling back to local map.");
             return findLawdCodeFromMap(address);
@@ -80,24 +82,34 @@ public class GeocodingService {
                 .queryParam("key", apiKey)
                 .toUriString();
 
-            log.info("VWorld 주소 검색 API 요청 URL: {}", url);
+            log.info("🌐 VWorld 주소 검색 API 요청 URL: {}", url);
             String response = restTemplate.getForObject(url, String.class);
-            log.info("VWorld 주소 검색 API 응답: {}", response);
+            log.info("📄 VWorld 주소 검색 API 응답: {}", response);
 
             JSONObject jsonResponse = new JSONObject(response);
             String status = jsonResponse.getJSONObject("response").getString("status");
 
             if ("OK".equals(status)) {
+                log.info("✅ VWorld API 응답 상태: OK");
                 JSONArray items = jsonResponse.getJSONObject("response").getJSONObject("result").getJSONObject("items").getJSONArray("item");
+                log.info("📊 검색된 아이템 수: {}", items.length());
+                
                 if (items.length() > 0) {
                     String lawdCd = items.getJSONObject(0).getJSONObject("address").getString("bcode");
+                    log.info("🏠 첫 번째 결과의 법정동 코드: {}", lawdCd);
+                    
                     if (lawdCd != null && !lawdCd.isEmpty()) {
-                        log.info("VWorld API에서 법정동 코드 조회 성공: {}", lawdCd);
-                        return lawdCd.substring(0, 5); // 10자리 코드 중 앞 5자리(구 코드)만 사용
+                        String resultCode = lawdCd.substring(0, 5); // 10자리 코드 중 앞 5자리(구 코드)만 사용
+                        log.info("✅ VWorld API에서 법정동 코드 조회 성공: {} -> {}", lawdCd, resultCode);
+                        return resultCode;
                     }
+                } else {
+                    log.warn("⚠️ VWorld API에서 검색 결과가 없습니다.");
                 }
+            } else {
+                log.warn("⚠️ VWorld API 응답 상태가 OK가 아닙니다: {}", status);
             }
-            log.warn("VWorld API에서 주소를 찾지 못했습니다. 로컬 맵에서 다시 시도합니다.");
+            log.warn("🔄 VWorld API에서 주소를 찾지 못했습니다. 로컬 맵에서 다시 시도합니다.");
             return findLawdCodeFromMap(address);
         } catch (Exception e) {
             log.error("VWorld 주소 검색 API 호출 실패. 로컬 맵에서 다시 시도합니다. 에러: {}", e.getMessage());
