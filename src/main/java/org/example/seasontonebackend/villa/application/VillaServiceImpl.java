@@ -136,45 +136,81 @@ public class VillaServiceImpl implements VillaService {
     private List<VillaMarketDataResponseDTO> getMockMonthlyRentMarketData(String lawdCd) {
         // 빌라 기본 가격 (오피스텔보다 낮음)
         double baseRent = getBaseRentByRegion(lawdCd, "빌라");
+        String[] neighborhoods = getNeighborhoodNamesByRegion(lawdCd);
         
-        return Arrays.asList(
-            VillaMarketDataResponseDTO.builder()
-                .neighborhood("미근동")
-                .avgMonthlyRent(Math.round(baseRent * 0.9))
-                .avgDeposit(Math.round(baseRent * 0.9 * 50))
-                .transactionCount(12)
-                .build(),
-            VillaMarketDataResponseDTO.builder()
-                .neighborhood("창천동")
-                .avgMonthlyRent(Math.round(baseRent * 1.1))
-                .avgDeposit(Math.round(baseRent * 1.1 * 50))
-                .transactionCount(26)
-                .build(),
-            VillaMarketDataResponseDTO.builder()
-                .neighborhood("충정로2가")
-                .avgMonthlyRent(Math.round(baseRent * 0.95))
-                .avgDeposit(Math.round(baseRent * 0.95 * 50))
-                .transactionCount(10)
-                .build(),
-            VillaMarketDataResponseDTO.builder()
-                .neighborhood("홍제동")
-                .avgMonthlyRent(Math.round(baseRent * 1.05))
-                .avgDeposit(Math.round(baseRent * 1.05 * 50))
-                .transactionCount(8)
-                .build(),
-            VillaMarketDataResponseDTO.builder()
-                .neighborhood("남가좌동")
-                .avgMonthlyRent(Math.round(baseRent * 0.85))
-                .avgDeposit(Math.round(baseRent * 0.85 * 50))
-                .transactionCount(3)
-                .build(),
-            VillaMarketDataResponseDTO.builder()
-                .neighborhood("합동")
-                .avgMonthlyRent(Math.round(baseRent * 1.0))
-                .avgDeposit(Math.round(baseRent * 1.0 * 50))
-                .transactionCount(9)
-                .build()
-        );
+        List<VillaMarketDataResponseDTO> mockData = new ArrayList<>();
+        for (int i = 0; i < Math.min(neighborhoods.length, 6); i++) {
+            String neighborhood = neighborhoods[i];
+            double variation = 0.85 + (i * 0.05); // 0.85, 0.9, 0.95, 1.0, 1.05, 1.1 배
+            double avgRent = Math.round(baseRent * variation);
+            double avgDeposit = Math.round(avgRent * 50);
+            
+            mockData.add(VillaMarketDataResponseDTO.builder()
+                .neighborhood(neighborhood)
+                .avgMonthlyRent(avgRent)
+                .avgDeposit(avgDeposit)
+                .transactionCount(3 + i * 2) // 3, 5, 7, 9, 11, 13건
+                .build());
+        }
+        
+        return mockData;
+    }
+    
+    private String[] getNeighborhoodNamesByRegion(String lawdCd) {
+        switch (lawdCd) {
+            case "11410": // 서대문구
+                return new String[]{"미근동", "창천동", "충정로2가", "홍제동", "남가좌동", "합동"};
+            case "11680": // 강남구
+                return new String[]{"역삼동", "개포동", "청담동", "삼성동", "대치동", "논현동"};
+            case "11650": // 서초구
+                return new String[]{"서초동", "방배동", "잠원동", "반포동", "내곡동", "양재동"};
+            case "11440": // 마포구
+                return new String[]{"공덕동", "아현동", "도화동", "용강동", "대흥동", "염리동"};
+            case "11170": // 용산구
+                return new String[]{"후암동", "용산동", "남영동", "청파동", "원효로동", "이촌동"};
+            case "11110": // 종로구
+                return new String[]{"청계동", "신문로동", "효제동", "혜화동", "명륜동", "이화동"};
+            case "11140": // 중구
+                return new String[]{"명동", "을지로동", "회현동", "신당동", "다산동", "약수동"};
+            case "11200": // 성동구
+                return new String[]{"왕십리동", "마장동", "사근동", "행당동", "응봉동", "금호동"};
+            case "11215": // 광진구
+                return new String[]{"구의동", "광장동", "자양동", "화양동", "군자동", "중곡동"};
+            case "11230": // 동대문구
+                return new String[]{"용신동", "제기동", "전농동", "답십리동", "장안동", "청량리동"};
+            case "11260": // 중랑구
+                return new String[]{"면목동", "상봉동", "중화동", "묵동", "망우동", "신내동"};
+            case "11290": // 성북구
+                return new String[]{"성북동", "삼선동", "동선동", "돈암동", "안암동", "보문동"};
+            case "11305": // 강북구
+                return new String[]{"삼양동", "미아동", "번동", "수유동", "우이동", "인수동"};
+            case "11320": // 도봉구
+                return new String[]{"쌍문동", "방학동", "창동", "도봉동", "노해동", "해등동"};
+            case "11350": // 노원구
+                return new String[]{"월계동", "공릉동", "하계동", "중계동", "상계동", "녹천동"};
+            case "11380": // 은평구
+                return new String[]{"수색동", "녹번동", "불광동", "갈현동", "구산동", "대조동"};
+            case "11470": // 양천구
+                return new String[]{"목동", "신월동", "신정동", "염창동", "등촌동", "가양동"};
+            case "11500": // 강서구
+                return new String[]{"염창동", "등촌동", "화곡동", "가양동", "마곡동", "내발산동"};
+            case "11530": // 구로구
+                return new String[]{"신도림동", "구로동", "가리봉동", "고척동", "개봉동", "오류동"};
+            case "11545": // 금천구
+                return new String[]{"가산동", "독산동", "시흥동", "광명동", "범계동", "산본동"};
+            case "11560": // 영등포구
+                return new String[]{"영등포동", "여의도동", "당산동", "도림동", "문래동", "신길동"};
+            case "11590": // 동작구
+                return new String[]{"노량진동", "상도동", "상도1동", "본동", "사당동", "대방동"};
+            case "11620": // 관악구
+                return new String[]{"보라매동", "청림동", "성현동", "행운동", "낙성대동", "청룡동"};
+            case "11710": // 송파구
+                return new String[]{"잠실동", "신천동", "마천동", "거여동", "문정동", "장지동"};
+            case "11740": // 강동구
+                return new String[]{"천호동", "성내동", "길동", "둔촌동", "암사동", "상일동"};
+            default:
+                return new String[]{"인근 지역 1", "인근 지역 2", "인근 지역 3", "인근 지역 4", "인근 지역 5", "인근 지역 6"};
+        }
     }
     
     private double getBaseRentByRegion(String lawdCd, String buildingType) {
