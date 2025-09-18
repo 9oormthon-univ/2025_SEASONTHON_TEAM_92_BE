@@ -59,17 +59,33 @@ public class DummyDataService {
         String[] contractTypes = {"전세", "월세", "반전세"};
         String[] dongs = {"101동", "102동", "103동", "201동", "202동", "203동", "301동", "302동", "303동"};
         
+        // 빌라 전용 더미 데이터
+        String[] villaNames = {"청담빌라", "강남빌라", "역삼빌라", "선릉빌라", "삼성빌라", "논현빌라", "신사빌라", "압구정빌라", 
+                              "망원빌라", "홍대빌라", "상수빌라", "합정빌라", "성수빌라", "건대빌라", "왕십리빌라", "청량리빌라",
+                              "이태원빌라", "한남빌라", "용산빌라", "서초빌라", "방배빌라", "사당빌라", "낙성대빌라", "서울대빌라"};
+        String[] villaAddresses = {"서울시 강남구 청담동", "서울시 강남구 역삼동", "서울시 강남구 선릉동", "서울시 강남구 삼성동", 
+                                  "서울시 강남구 논현동", "서울시 강남구 신사동", "서울시 강남구 압구정동", "서울시 마포구 망원동",
+                                  "서울시 마포구 홍대입구", "서울시 마포구 상수동", "서울시 마포구 합정동", "서울시 성동구 성수동",
+                                  "서울시 광진구 건대입구", "서울시 성동구 왕십리동", "서울시 동대문구 청량리동", "서울시 용산구 이태원동",
+                                  "서울시 용산구 한남동", "서울시 용산구 용산동", "서울시 서초구 서초동", "서울시 서초구 방배동",
+                                  "서울시 동작구 사당동", "서울시 동작구 낙성대동", "서울시 관악구 서울대입구"};
+        
         for (int i = 0; i < count; i++) {
             String name = names[i % names.length] + (i / names.length > 0 ? (i / names.length) : "");
             String email = "user" + (i + 1) + "@example.com";
+            
+            // 빌라인 경우 특별한 데이터 생성
+            String building = buildings[random.nextInt(buildings.length)];
+            String buildingName = building.equals("빌라") ? villaNames[random.nextInt(villaNames.length)] : "건물" + (i + 1);
+            String detailAddress = building.equals("빌라") ? villaAddresses[random.nextInt(villaAddresses.length)] : "상세주소 " + (i + 1);
             
             Member member = Member.builder()
                 .name(name)
                 .email(email)
                 .password(passwordEncoder.encode("password123"))
                 .role(Role.User)
-                .building(buildings[random.nextInt(buildings.length)])
-                .detailAddress("상세주소 " + (i + 1))
+                .building(building)
+                .detailAddress(detailAddress)
                 .buildingType(buildingTypes[random.nextInt(buildingTypes.length)])
                 .contractType(contractTypes[random.nextInt(contractTypes.length)])
                 .security((long) (random.nextInt(10000) + 1000) * 10000) // 1000만원 ~ 1억원
