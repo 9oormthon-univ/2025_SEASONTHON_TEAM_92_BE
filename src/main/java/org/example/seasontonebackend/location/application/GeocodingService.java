@@ -29,17 +29,42 @@ public class GeocodingService {
     @Value("${vworld.api.enabled:true}")
     private boolean apiEnabled;
 
-    // 주소 -> 법정동 코드 변환을 위한 캐시/폴백 맵
+    // 주소 -> 법정동 코드 변환을 위한 캐시/폴백 맵 (확장된 매핑)
     private static final Map<String, String> LAWD_CODE_MAP = Map.ofEntries(
+        // 서울시
         Map.entry("강남구", "11680"), Map.entry("강동구", "11740"), Map.entry("강북구", "11305"),
         Map.entry("강서구", "11500"), Map.entry("관악구", "11620"), Map.entry("광진구", "11215"),
         Map.entry("구로구", "11530"), Map.entry("금천구", "11545"), Map.entry("노원구", "11350"),
         Map.entry("도봉구", "11320"), Map.entry("동대문구", "11230"), Map.entry("동작구", "11590"),
-        Map.entry("마포구", "11410"), Map.entry("서대문구", "11440"), Map.entry("서초구", "11650"),
+        Map.entry("마포구", "11440"), Map.entry("서대문구", "11410"), Map.entry("서초구", "11650"),
         Map.entry("성동구", "11200"), Map.entry("성북구", "11290"), Map.entry("송파구", "11710"),
         Map.entry("양천구", "11470"), Map.entry("영등포구", "11560"), Map.entry("용산구", "11170"),
         Map.entry("은평구", "11380"), Map.entry("종로구", "11110"), Map.entry("중구", "11140"),
-        Map.entry("중랑구", "11260")
+        Map.entry("중랑구", "11260"),
+        
+        // 울산광역시
+        Map.entry("울주군", "31170"), Map.entry("중구", "31110"), Map.entry("남구", "31120"),
+        Map.entry("동구", "31130"), Map.entry("북구", "31140"),
+        
+        // 부산광역시
+        Map.entry("부산진구", "26230"), Map.entry("해운대구", "26350"), Map.entry("사상구", "26530"),
+        Map.entry("금정구", "26410"), Map.entry("연제구", "26470"), Map.entry("수영구", "26500"),
+        Map.entry("사하구", "26440"), Map.entry("동래구", "26260"), Map.entry("영도구", "26200"),
+        
+        // 대구광역시
+        Map.entry("달서구", "27290"), Map.entry("달성군", "27710"), Map.entry("수성구", "27260"),
+        
+        // 인천광역시
+        Map.entry("연수구", "28185"), Map.entry("계양구", "28140"), Map.entry("미추홀구", "28177"),
+        Map.entry("남동구", "28140"), Map.entry("부평구", "28140"),
+        
+        // 광주광역시
+        Map.entry("광산구", "29200"), Map.entry("서구", "29170"), Map.entry("북구", "29155"),
+        Map.entry("남구", "29140"), Map.entry("동구", "29110"),
+        
+        // 대전광역시
+        Map.entry("유성구", "30200"), Map.entry("대덕구", "30180"), Map.entry("서구", "30170"),
+        Map.entry("중구", "30110"), Map.entry("동구", "30140")
     );
 
     public GeocodingService() {
