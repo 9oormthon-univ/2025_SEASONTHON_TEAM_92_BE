@@ -39,32 +39,37 @@ public class GeocodingService {
         Map.entry("마포구", "11440"), Map.entry("서대문구", "11410"), Map.entry("서초구", "11650"),
         Map.entry("성동구", "11200"), Map.entry("성북구", "11290"), Map.entry("송파구", "11710"),
         Map.entry("양천구", "11470"), Map.entry("영등포구", "11560"), Map.entry("용산구", "11170"),
-        Map.entry("은평구", "11380"), Map.entry("종로구", "11110"), Map.entry("중구", "11140"),
+        Map.entry("은평구", "11380"), Map.entry("종로구", "11110"), Map.entry("서울중구", "11140"),
         Map.entry("중랑구", "11260"),
         
         // 울산광역시
-        Map.entry("울주군", "31170"), Map.entry("중구", "31110"), Map.entry("남구", "31120"),
-        Map.entry("동구", "31130"), Map.entry("북구", "31140"),
+        Map.entry("울주군", "31170"), Map.entry("울산중구", "31110"), Map.entry("울산남구", "31120"),
+        Map.entry("울산동구", "31130"), Map.entry("울산북구", "31140"),
         
         // 부산광역시
         Map.entry("부산진구", "26230"), Map.entry("해운대구", "26350"), Map.entry("사상구", "26530"),
         Map.entry("금정구", "26410"), Map.entry("연제구", "26470"), Map.entry("수영구", "26500"),
         Map.entry("사하구", "26440"), Map.entry("동래구", "26260"), Map.entry("영도구", "26200"),
+        Map.entry("부산강서구", "26440"), Map.entry("부산남구", "26200"), Map.entry("부산북구", "26290"),
+        Map.entry("부산중구", "26110"), Map.entry("부산서구", "26200"), Map.entry("부산동구", "26140"),
         
         // 대구광역시
         Map.entry("달서구", "27290"), Map.entry("달성군", "27710"), Map.entry("수성구", "27260"),
+        Map.entry("대구북구", "27200"), Map.entry("대구서구", "27200"), Map.entry("대구남구", "27200"),
+        Map.entry("대구동구", "27140"), Map.entry("대구중구", "27110"),
         
         // 인천광역시
         Map.entry("연수구", "28185"), Map.entry("계양구", "28140"), Map.entry("미추홀구", "28177"),
-        Map.entry("남동구", "28140"), Map.entry("부평구", "28140"),
+        Map.entry("인천남동구", "28140"), Map.entry("부평구", "28140"), Map.entry("인천서구", "28140"),
+        Map.entry("인천동구", "28110"), Map.entry("인천중구", "28110"),
         
         // 광주광역시
-        Map.entry("광산구", "29200"), Map.entry("서구", "29170"), Map.entry("북구", "29155"),
-        Map.entry("남구", "29140"), Map.entry("동구", "29110"),
+        Map.entry("광산구", "29200"), Map.entry("광주서구", "29170"), Map.entry("광주북구", "29155"),
+        Map.entry("광주남구", "29140"), Map.entry("광주동구", "29110"),
         
         // 대전광역시
-        Map.entry("유성구", "30200"), Map.entry("대덕구", "30180"), Map.entry("서구", "30170"),
-        Map.entry("중구", "30110"), Map.entry("동구", "30140")
+        Map.entry("유성구", "30200"), Map.entry("대덕구", "30180"), Map.entry("대전서구", "30170"),
+        Map.entry("대전중구", "30110"), Map.entry("대전동구", "30140")
     );
 
     public GeocodingService() {
