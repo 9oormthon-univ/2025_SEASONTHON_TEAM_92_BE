@@ -6,14 +6,11 @@ import org.example.seasontonebackend.location.application.LocationService;
 import org.example.seasontonebackend.location.dto.LocationVerificationRequest;
 import org.example.seasontonebackend.location.dto.LocationVerificationResponse;
 import org.example.seasontonebackend.location.dto.AddressPreviewResponse;
-import org.example.seasontonebackend.location.dto.GPSVerificationRequest;
-import org.example.seasontonebackend.location.dto.GPSVerificationResponse;
-import org.example.seasontonebackend.location.dto.LocationAccuracyResponse;
 import org.example.seasontonebackend.location.exception.LocationException;
-import org.example.seasontonebackend.member.domain.Member;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -40,15 +37,26 @@ public class LocationController {
      * userId는 JWT 토큰에서 자동 추출
      */
     @PostMapping("/verify")
-    public ResponseEntity<Map<String, Object>> verifyLocation(@RequestBody LocationVerificationRequest request, @AuthenticationPrincipal Member member) {
+    public ResponseEntity<Map<String, Object>> verifyLocation(@RequestBody LocationVerificationRequest request) {
         log.info("🔥🔥🔥 LocationController.verifyLocation 호출됨!");
         log.info("📥 받은 데이터: {}", request);
 
         try {
-            // @AuthenticationPrincipal을 통해 Member 객체를 직접 받으므로, 별도 추출 로직 불필요
-            log.info("🔐 인증된 사용자 ID: {}", member.getId());
+            // JWT 토큰에서 사용자 ID 추출
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String userId = authentication.getName(); // 또는 토큰에서 추출하는 다른 방법
+
+            log.info("🔐 토큰에서 추출된 사용자 ID: {}", userId);
 
             // 기본 유효성 검증
+            if (userId == null || userId.trim().isEmpty()) {
+                Map<String, Object> errorResult = new HashMap<>();
+                errorResult.put("success", false);
+                errorResult.put("data", null);
+                errorResult.put("message", "인증되지 않은 사용자입니다.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResult);
+            }
+
             if (request.getLatitude() == null || request.getLongitude() == null) {
                 Map<String, Object> errorResult = new HashMap<>();
                 errorResult.put("success", false);
@@ -65,8 +73,14 @@ public class LocationController {
                 return ResponseEntity.badRequest().body(errorResult);
             }
 
-            // LocationService에 Member 객체를 직접 전달
-            LocationVerificationResponse response = locationService.verifyLocation(request, member);
+            // userId를 포함한 완전한 요청 객체 생성
+            LocationVerificationRequest fullRequest = LocationVerificationRequest.builder()
+                    .latitude(request.getLatitude())
+                    .longitude(request.getLongitude())
+                    .buildingName(request.getBuildingName())
+                    .build();
+
+            LocationVerificationResponse response = locationService.verifyLocation(fullRequest, userId);
 
             Map<String, Object> result = new HashMap<>();
             result.put("success", true);
@@ -169,115 +183,5 @@ public class LocationController {
         result.put("message", "Location service is healthy");
 
         return ResponseEntity.ok(result);
-    }
-
-    /**
-     * GPS 인증 수행
-     */
-    @PostMapping("/gps/verify")
-    public ResponseEntity<Map<String, Object>> verifyGPSLocation(@RequestBody GPSVerificationRequest request) {
-        log.info("🔥🔥🔥 GPS 인증 요청!");
-        log.info("📥 받은 데이터: {}", request);
-
-        try {
-            // 기본 유효성 검증
-            if (request.getLatitude() == null || request.getLongitude() == null) {
-                Map<String, Object> errorResult = new HashMap<>();
-                errorResult.put("success", false);
-                errorResult.put("data", null);
-                errorResult.put("message", "위도와 경도는 필수입니다.");
-                return ResponseEntity.badRequest().body(errorResult);
-            }
-
-            if (request.getAccuracy() == null) {
-                Map<String, Object> errorResult = new HashMap<>();
-                errorResult.put("success", false);
-                errorResult.put("data", null);
-                errorResult.put("message", "정확도 정보는 필수입니다.");
-                return ResponseEntity.badRequest().body(errorResult);
-            }
-
-            // GPS 인증 수행
-            GPSVerificationResponse response = locationService.verifyGPSLocation(request);
-
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", true);
-            result.put("data", response);
-            result.put("message", response.getMessage());
-
-            log.info("✅ GPS 인증 성공! 신뢰도: {}%, 인증: {}", response.getConfidence(), response.isVerified());
-            return ResponseEntity.ok(result);
-
-        } catch (LocationException e) {
-            log.error("❌ GPS 인증 실패: {}", e.getMessage());
-
-            Map<String, Object> errorResult = new HashMap<>();
-            errorResult.put("success", false);
-            errorResult.put("data", null);
-            errorResult.put("message", e.getMessage());
-
-            return ResponseEntity.badRequest().body(errorResult);
-
-        } catch (Exception e) {
-            log.error("❌ GPS 인증 중 예상치 못한 오류 발생", e);
-
-            Map<String, Object> errorResult = new HashMap<>();
-            errorResult.put("success", false);
-            errorResult.put("data", null);
-            errorResult.put("message", "GPS 인증 중 서버 오류가 발생했습니다.");
-
-            return ResponseEntity.internalServerError().body(errorResult);
-        }
-    }
-
-    /**
-     * 위치 정확도 평가
-     */
-    @PostMapping("/gps/accuracy")
-    public ResponseEntity<Map<String, Object>> evaluateLocationAccuracy(@RequestBody GPSVerificationRequest request) {
-        log.info("📍 위치 정확도 평가 요청!");
-        log.info("📥 받은 데이터: {}", request);
-
-        try {
-            // 기본 유효성 검증
-            if (request.getLatitude() == null || request.getLongitude() == null) {
-                Map<String, Object> errorResult = new HashMap<>();
-                errorResult.put("success", false);
-                errorResult.put("data", null);
-                errorResult.put("message", "위도와 경도는 필수입니다.");
-                return ResponseEntity.badRequest().body(errorResult);
-            }
-
-            // 정확도 평가 수행
-            LocationAccuracyResponse response = locationService.evaluateLocationAccuracy(request);
-
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", true);
-            result.put("data", response);
-            result.put("message", response.getMessage());
-
-            log.info("✅ 정확도 평가 성공! 신뢰도: {}%", response.getConfidence());
-            return ResponseEntity.ok(result);
-
-        } catch (LocationException e) {
-            log.error("❌ 정확도 평가 실패: {}", e.getMessage());
-
-            Map<String, Object> errorResult = new HashMap<>();
-            errorResult.put("success", false);
-            errorResult.put("data", null);
-            errorResult.put("message", e.getMessage());
-
-            return ResponseEntity.badRequest().body(errorResult);
-
-        } catch (Exception e) {
-            log.error("❌ 정확도 평가 중 예상치 못한 오류 발생", e);
-
-            Map<String, Object> errorResult = new HashMap<>();
-            errorResult.put("success", false);
-            errorResult.put("data", null);
-            errorResult.put("message", "정확도 평가 중 서버 오류가 발생했습니다.");
-
-            return ResponseEntity.internalServerError().body(errorResult);
-        }
     }
 }
