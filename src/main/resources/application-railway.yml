@@ -71,7 +71,6 @@ vworld:
     enabled: ${VWORLD_API_ENABLED:true}
 
 # Spring Mail 설정
-spring:
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
