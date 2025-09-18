@@ -414,25 +414,32 @@ public class SmartDiagnosisService {
     private NoiseStatistics calculateNoiseStatistics(List<SmartDiagnosisRequestDTO.NoiseSample> samples) {
         if (samples.isEmpty()) {
             return NoiseStatistics.builder()
-                    .avgDecibel(0.0)
-                    .minDecibel(0.0)
-                    .maxDecibel(0.0)
+                    .avgDecibel(35.0)
+                    .minDecibel(35.0)
+                    .maxDecibel(35.0)
                     .build();
         }
 
-        double sum = 0.0;
-        double min = Double.MAX_VALUE;
-        double max = Double.MIN_VALUE;
+        // 유효한 데이터만 필터링 (NaN, Infinity, 음수 제거)
+        List<Double> validDecibels = samples.stream()
+                .map(SmartDiagnosisRequestDTO.NoiseSample::getDecibel)
+                .filter(decibel -> decibel != null && !Double.isNaN(decibel) && Double.isFinite(decibel) && decibel > 0)
+                .collect(java.util.stream.Collectors.toList());
 
-        for (SmartDiagnosisRequestDTO.NoiseSample sample : samples) {
-            double decibel = sample.getDecibel();
-            sum += decibel;
-            min = Math.min(min, decibel);
-            max = Math.max(max, decibel);
+        if (validDecibels.isEmpty()) {
+            return NoiseStatistics.builder()
+                    .avgDecibel(35.0)
+                    .minDecibel(35.0)
+                    .maxDecibel(35.0)
+                    .build();
         }
 
+        double sum = validDecibels.stream().mapToDouble(Double::doubleValue).sum();
+        double min = validDecibels.stream().mapToDouble(Double::doubleValue).min().orElse(35.0);
+        double max = validDecibels.stream().mapToDouble(Double::doubleValue).max().orElse(35.0);
+
         return NoiseStatistics.builder()
-                .avgDecibel(roundToTwo(sum / samples.size()))
+                .avgDecibel(roundToTwo(sum / validDecibels.size()))
                 .minDecibel(roundToTwo(min))
                 .maxDecibel(roundToTwo(max))
                 .build();

@@ -270,13 +270,13 @@ public class ReportService {
             // 법정동코드 추출
             String lawdCd = addressService.extractLawdCd(member.getDong());
             
-            // 건물 유형에 따라 적절한 시계열 데이터 가져오기
+            // 건물 유형에 따라 적절한 시계열 데이터 가져오기 (6개월 데이터)
             Map<String, Object> timeSeriesData;
             if (member.getBuildingType() != null && 
                 (member.getBuildingType().contains("빌라") || member.getBuildingType().contains("다세대"))) {
-                timeSeriesData = villaService.getTimeSeriesAnalysis(lawdCd, 7);
+                timeSeriesData = villaService.getTimeSeriesAnalysis(lawdCd, 6);
             } else {
-                timeSeriesData = officetelService.getTimeSeriesAnalysis(lawdCd, 7);
+                timeSeriesData = officetelService.getTimeSeriesAnalysis(lawdCd, 6);
             }
             
             // 시계열 데이터 변환
@@ -305,7 +305,7 @@ public class ReportService {
                     .rentTrend(rentTrend)
                     .marketVolatility(marketVolatility)
                     .predictionConfidence(predictionConfidence)
-                    .period("7개월")
+                    .period("6개월")
                     .dataSource("공공데이터포털 실거래가 API")
                     .build();
                     
@@ -318,24 +318,23 @@ public class ReportService {
     }
     
     /**
-     * 목업 시계열 분석 데이터 생성
+     * 목업 시계열 분석 데이터 생성 (6개월, 11.9% 상승률)
      */
     private ReportResponseDto.TimeSeriesAnalysisDto createMockTimeSeriesAnalysis() {
         List<ReportResponseDto.RentTrendDto> rentTrend = Arrays.asList(
-            ReportResponseDto.RentTrendDto.builder().month("2025-03").averageRent(750000.0).build(),
-            ReportResponseDto.RentTrendDto.builder().month("2025-04").averageRent(760000.0).build(),
-            ReportResponseDto.RentTrendDto.builder().month("2025-05").averageRent(770000.0).build(),
-            ReportResponseDto.RentTrendDto.builder().month("2025-06").averageRent(780000.0).build(),
-            ReportResponseDto.RentTrendDto.builder().month("2025-07").averageRent(790000.0).build(),
-            ReportResponseDto.RentTrendDto.builder().month("2025-08").averageRent(800000.0).build(),
-            ReportResponseDto.RentTrendDto.builder().month("2025-09").averageRent(810000.0).build()
+            ReportResponseDto.RentTrendDto.builder().month("2025-04").averageRent(590000.0).build(),
+            ReportResponseDto.RentTrendDto.builder().month("2025-05").averageRent(610000.0).build(),
+            ReportResponseDto.RentTrendDto.builder().month("2025-06").averageRent(630000.0).build(),
+            ReportResponseDto.RentTrendDto.builder().month("2025-07").averageRent(650000.0).build(),
+            ReportResponseDto.RentTrendDto.builder().month("2025-08").averageRent(660000.0).build(),
+            ReportResponseDto.RentTrendDto.builder().month("2025-09").averageRent(660000.0).build()
         );
         
         return ReportResponseDto.TimeSeriesAnalysisDto.builder()
                 .rentTrend(rentTrend)
-                .marketVolatility(0.08) // 8%
+                .marketVolatility(0.119) // 11.9%
                 .predictionConfidence(85)
-                .period("7개월")
+                .period("6개월")
                 .dataSource("시뮬레이션 데이터")
                 .build();
     }
@@ -422,7 +421,7 @@ public class ReportService {
         int priority = 1;
         for (ReportResponseDto.ScoreComparison score : sortedScores.stream().limit(2).collect(Collectors.toList())) {
             String title = score.getCategory() + " 문제 개선 요구";
-            String script = String.format("우리 집의 '%s' 만족도 점수(%.1f점)는 동네 평균(%.1f점)보다 낮습니다. 이 데이터를 근거로 개선을 요구하거나 월세 조정을 제안해볼 수 있습니다.",
+            String script = String.format("우리 집의 '%s' 만족도 점수(%.1f점)는 동네 평균(%.1f점)보다 낮습니다. 이 객관적 데이터를 바탕으로 합리적인 개선 방안을 함께 모색해보시는 것은 어떨까요?",
                     score.getCategory(), score.getMyScore(), score.getNeighborhoodAverage());
 
             ReportResponseDto.NegotiationCardDto.NegotiationCardDtoBuilder cardBuilder = ReportResponseDto.NegotiationCardDto.builder()
@@ -710,15 +709,15 @@ public class ReportService {
         
         switch (category) {
             case "소음":
-                return "소음 문제가 지속되면 주택임대차보호법 제6조의2에 따라 임대인에게 수선 의무가 있습니다. 내용증명으로 요구서를 보내세요.";
+                return "소음 문제가 지속될 경우 주택임대차보호법 제6조의2에 따라 임대인에게 수선 의무가 있습니다. 정중하게 개선 방안을 논의해보세요.";
             case "수압/온수":
-                return "수압 문제는 우리 건물 평균 대비 50% 낮습니다. 수선 의무가 있으니 보일러/배관 점검을 요구하세요.";
+                return "수압 문제는 우리 건물 평균 대비 낮은 수치를 보입니다. 보일러/배관 점검을 함께 검토해보시는 것은 어떨까요?";
             case "채광":
-                return "채광 부족은 건물 구조상 개선이 어려우므로, 월세 인상률 동결 또는 관리비 할인을 요구하세요.";
+                return "채광 부족은 건물 구조상 개선이 어려운 부분입니다. 월세 인상률 동결이나 관리비 할인 등 대안을 함께 고려해보세요.";
             case "주차/교통":
-                return "주차 문제는 동네 인프라와 관련이 있으므로, 임대인과 협의하여 대안을 모색하세요.";
+                return "주차 문제는 동네 인프라와 관련이 있습니다. 임대인과 협의하여 실현 가능한 대안을 모색해보세요.";
             default:
-                return "법적 근거를 바탕으로 단계적 접근을 권장합니다.";
+                return "객관적 데이터를 바탕으로 상호 존중하는 자세로 단계적 접근을 권장합니다.";
         }
     }
     
@@ -727,15 +726,15 @@ public class ReportService {
         
         switch (category) {
             case "소음":
-                return "소음 측정 데이터와 이전 세입자 증언을 함께 제시하면 성공 확률이 높아집니다.";
+                return "소음 측정 데이터와 이전 세입자 증언을 함께 제시하면 협상에 도움이 됩니다.";
             case "수압/온수":
-                return "수압 측정 앱으로 객관적 데이터를 수집하여 제시하면 설득력이 높아집니다.";
+                return "수압 측정 앱으로 객관적 데이터를 수집하여 제시하면 상호 이해에 도움이 됩니다.";
             case "채광":
-                return "채광 측정 앱으로 객관적 데이터를 수집하여 제시하면 설득력이 높아집니다.";
+                return "채광 측정 앱으로 객관적 데이터를 수집하여 제시하면 합리적 논의에 도움이 됩니다.";
             case "주차/교통":
-                return "주차 공간 확보 방안을 구체적으로 제시하면 협상에 유리합니다.";
+                return "주차 공간 확보 방안을 구체적으로 제시하면 실현 가능한 해결책을 찾는데 도움이 됩니다.";
             default:
-                return "객관적 데이터와 함께 제시하면 성공 확률이 높아집니다.";
+                return "객관적 데이터를 바탕으로 상호 존중하는 자세로 접근하면 좋은 결과를 얻을 수 있습니다.";
         }
     }
 
