@@ -15,6 +15,15 @@ java {
 }
 bootJar {
     archiveFileName = "SeasonToneBackend.jar"
+    // JAR 파일 최적화
+    enabled = true
+    archiveClassifier = ''
+}
+
+// JAR 파일 크기 최적화
+jar {
+    enabled = false
+    archiveClassifier = ''
 }
 
 repositories {
