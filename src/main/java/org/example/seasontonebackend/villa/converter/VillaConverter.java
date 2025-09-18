@@ -89,9 +89,15 @@ public class VillaConverter {
             return 0.0;
         }
         try {
-            // 금액을 만원 단위로 변환 (원 단위를 만원으로 나누기)
-            double amountInWon = Double.parseDouble(amount.replace(",", "").trim());
-            return amountInWon / 10000.0; // 만원 단위로 변환
+            // 금액 파싱 (이미 만원 단위로 들어올 수 있음)
+            double amountValue = Double.parseDouble(amount.replace(",", "").trim());
+            
+            // 만원 단위인지 원 단위인지 판단 (일반적으로 1000 이상이면 만원 단위)
+            if (amountValue >= 1000) {
+                return amountValue; // 이미 만원 단위
+            } else {
+                return amountValue / 10000.0; // 원 단위를 만원 단위로 변환
+            }
         } catch (NumberFormatException e) {
             log.warn("빌라 금액 파싱 실패: {}", amount);
             return 0.0;

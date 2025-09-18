@@ -57,8 +57,26 @@ public class VillaServiceImpl implements VillaService {
     private Map<String, List<VillaTransactionResponseDTO>> getMockVillaData(String lawdCd) {
         Map<String, List<VillaTransactionResponseDTO>> mockData = new HashMap<>();
         
-        // 울산 지역 코드에 따른 모의 데이터
-        if ("11410".equals(lawdCd)) {
+        // 울산 동구 지역 코드에 따른 모의 데이터
+        if ("31170".equals(lawdCd)) {
+            String[] buildingNames = {"일산빌라", "방어빌라", "화정빌라", "동부빌라", "서부빌라", "전하빌라"};
+            String[] contractDates = {"2025-09-14", "2025-09-15", "2025-09-16", "2025-09-10", "2025-09-03", "2025-09-12"};
+            String[] monthlyRents = {"35", "40", "45", "50", "55", "30"}; // 만원 단위
+            String[] deposits = {"350", "400", "450", "500", "550", "300"}; // 만원 단위
+            String[] areas = {"40", "40", "45", "46", "39.67", "32"};
+            
+            for (int i = 0; i < buildingNames.length; i++) {
+                mockData.put(buildingNames[i], Arrays.asList(
+                    VillaTransactionResponseDTO.builder()
+                        .buildingName(buildingNames[i])
+                        .monthlyRent(monthlyRents[i])
+                        .deposit(deposits[i])
+                        .area(areas[i])
+                        .contractDate(contractDates[i])
+                        .build()
+                ));
+            }
+        } else if ("11410".equals(lawdCd)) {
             mockData.put("센텀13", Arrays.asList(
                 VillaTransactionResponseDTO.builder()
                     .buildingName("센텀13")
@@ -125,6 +143,12 @@ public class VillaServiceImpl implements VillaService {
                     .filter(this::isMonthlyRentTransaction)
                     .collect(Collectors.toList());
 
+            // 실제 데이터가 없거나 월세 거래가 없으면 모의 데이터 사용
+            if (monthlyRentItems.isEmpty()) {
+                log.warn("월세 거래 데이터가 없어 모의 데이터 제공. 법정동코드: {}", lawdCd);
+                return getMockMonthlyRentMarketData(lawdCd);
+            }
+
             return groupByNeighborhoodAndCalculate(monthlyRentItems, villaConverter::calculateMonthlyRentMarketData);
         } catch (Exception e) {
             log.warn("월세 시장 데이터 API 호출 실패, 모의 데이터 제공: {}", e.getMessage());
@@ -144,6 +168,14 @@ public class VillaServiceImpl implements VillaService {
             double variation = 0.85 + (i * 0.05); // 0.85, 0.9, 0.95, 1.0, 1.05, 1.1 배
             double avgRent = Math.round(baseRent * variation);
             double avgDeposit = Math.round(avgRent * 50);
+            
+            // 울산 동구의 경우 실제적인 월세 데이터 생성
+            if ("31170".equals(lawdCd)) {
+                // 울산 동구 실제 월세 범위 (30-60만원) - 만원 단위로 설정
+                double[] ulsanRents = {30, 35, 40, 45, 50, 55}; // 만원 단위
+                avgRent = ulsanRents[i % ulsanRents.length];
+                avgDeposit = Math.round(avgRent * 10); // 월세의 10배
+            }
             
             mockData.add(VillaMarketDataResponseDTO.builder()
                 .neighborhood(neighborhood)
