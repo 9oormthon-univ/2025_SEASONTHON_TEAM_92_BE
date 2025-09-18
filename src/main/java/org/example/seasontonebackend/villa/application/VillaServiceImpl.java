@@ -208,6 +208,8 @@ public class VillaServiceImpl implements VillaService {
                 return new String[]{"잠실동", "신천동", "마천동", "거여동", "문정동", "장지동"};
             case "11740": // 강동구
                 return new String[]{"천호동", "성내동", "길동", "둔촌동", "암사동", "상일동"};
+            case "31170": // 울산 동구
+                return new String[]{"일산동", "방어동", "화정동", "동부동", "서부동", "전하동"};
             case "31710": // 울산 울주군
                 return new String[]{"범서읍", "언양읍", "온양읍", "온산읍", "두동면", "두서면"};
             default:
@@ -256,8 +258,10 @@ public class VillaServiceImpl implements VillaService {
                 return baseRent * 0.8;
             case "11620": // 관악구
                 return baseRent * 0.7;
+            case "31170": // 울산 동구
+                return baseRent * 0.5; // 울산 동구는 서울 대비 50% 수준
             case "31710": // 울산 울주군
-                return baseRent * 0.4; // 울산은 서울 대비 40% 수준
+                return baseRent * 0.4; // 울산 울주군은 서울 대비 40% 수준
             default:
                 return baseRent;
         }

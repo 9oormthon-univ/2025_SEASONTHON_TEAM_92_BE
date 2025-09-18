@@ -44,6 +44,13 @@ public class AddressService {
         GU_CODE_MAP.put("중구", "11140");
         GU_CODE_MAP.put("중랑구", "11260");
         
+        // 울산광역시 구별 법정동코드
+        GU_CODE_MAP.put("울산중구", "31110"); // 울산 중구
+        GU_CODE_MAP.put("울산남구", "31140"); // 울산 남구
+        GU_CODE_MAP.put("울산동구", "31170"); // 울산 동구
+        GU_CODE_MAP.put("울산북구", "31200"); // 울산 북구
+        GU_CODE_MAP.put("울주군", "31710"); // 울산 울주군
+        
         // 주요 동별 법정동코드 (서대문구 예시)
         DONG_CODE_MAP.put("미근동", "1141010100");
         DONG_CODE_MAP.put("창천동", "1141010200");
@@ -83,6 +90,14 @@ public class AddressService {
         DONG_CODE_MAP.put("청파동", "1117010400");
         DONG_CODE_MAP.put("원효로동", "1117010500");
         DONG_CODE_MAP.put("이촌동", "1117010600");
+        
+        // 울산 동구 주요 동들
+        DONG_CODE_MAP.put("일산동", "3117010100");
+        DONG_CODE_MAP.put("방어동", "3117010200");
+        DONG_CODE_MAP.put("화정동", "3117010300");
+        DONG_CODE_MAP.put("동부동", "3117010400");
+        DONG_CODE_MAP.put("서부동", "3117010500");
+        DONG_CODE_MAP.put("전하동", "3117010600");
     }
     
     /**
