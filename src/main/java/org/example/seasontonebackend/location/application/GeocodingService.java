@@ -163,10 +163,17 @@ public class GeocodingService {
         log.info("입력 좌표 - 경도: {}, 위도: {}", longitude, latitude);
 
         try {
-            String url = String.format(
-                    "%s?service=address&request=GetAddress&version=2.0&crs=epsg:4326&point=%f,%f&format=json&type=both&zipcode=false&simple=false&key=%s",
-                    apiUrl, longitude, latitude, apiKey
-            );
+            // 프록시 URL인 경우 coords 파라미터 사용
+            String url;
+            if (apiUrl.contains("vworld-proxy")) {
+                url = String.format("%s?coords=%f,%f", apiUrl, longitude, latitude);
+            } else {
+                // 직접 VWorld API 호출인 경우 기존 파라미터 사용
+                url = String.format(
+                        "%s?service=address&request=GetAddress&version=2.0&crs=epsg:4326&point=%f,%f&format=json&type=both&zipcode=false&simple=false&key=%s",
+                        apiUrl, longitude, latitude, apiKey
+                );
+            }
             
             log.info("🌐 VWorld API 요청 URL: {}", url);
 
@@ -180,6 +187,20 @@ public class GeocodingService {
 
             JSONObject jsonResponse = new JSONObject(response);
 
+            // 프록시 응답 처리
+            if (apiUrl.contains("vworld-proxy")) {
+                if (jsonResponse.has("success") && jsonResponse.getBoolean("success")) {
+                    String address = jsonResponse.getString("address");
+                    log.info("✅ 프록시를 통한 주소 변환 성공: {}", address);
+                    return address;
+                } else {
+                    String error = jsonResponse.optString("error", "주소 변환 실패");
+                    log.error("❌ 프록시 오류: {}", error);
+                    throw new RuntimeException("주소 조회에 실패했습니다: " + error);
+                }
+            }
+
+            // 직접 VWorld API 응답 처리
             // 에러 응답 확인
             if (jsonResponse.has("response") && jsonResponse.getJSONObject("response").has("status")) {
                 String status = jsonResponse.getJSONObject("response").getString("status");
