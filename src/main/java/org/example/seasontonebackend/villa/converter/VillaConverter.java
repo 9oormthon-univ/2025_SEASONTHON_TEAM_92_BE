@@ -89,7 +89,9 @@ public class VillaConverter {
             return 0.0;
         }
         try {
-            return Double.parseDouble(amount.replace(",", "").trim());
+            // 금액을 만원 단위로 변환 (원 단위를 만원으로 나누기)
+            double amountInWon = Double.parseDouble(amount.replace(",", "").trim());
+            return amountInWon / 10000.0; // 만원 단위로 변환
         } catch (NumberFormatException e) {
             log.warn("빌라 금액 파싱 실패: {}", amount);
             return 0.0;
