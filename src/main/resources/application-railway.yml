@@ -70,6 +70,24 @@ vworld:
     url: https://rental-lovat-theta.vercel.app/api/vworld-proxy
     enabled: ${VWORLD_API_ENABLED:true}
 
+# Spring Mail 설정
+spring:
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
+
 
 # 정책 API 설정 (해커톤용 - 추후 확장 가능)
 policy:
