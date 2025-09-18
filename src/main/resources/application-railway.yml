@@ -70,12 +70,12 @@ vworld:
     url: https://rental-lovat-theta.vercel.app/api/vworld-proxy
     enabled: ${VWORLD_API_ENABLED:true}
 
-# Spring Mail 설정
+# Spring Mail 설정 (환경변수가 있을 때만 활성화)
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     default-encoding: UTF-8
     properties:
       mail:
