@@ -40,8 +40,6 @@ public class DiagnosisService {
             DiagnosisQuestionsResponseDTO.Category category = DiagnosisQuestionsResponseDTO.Category.builder()
                     .categoryId((long) i)
                     .sortOrder(i)
-                    .title(getCategoryTitle(i))
-                    .description(getCategoryDescription(i))
                     .questions(questions)
                     .build();
 

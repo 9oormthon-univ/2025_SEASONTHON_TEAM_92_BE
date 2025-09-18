@@ -126,7 +126,9 @@ public class ReportService {
     private ReportResponseDto buildReportResponse(Report report, Member member) {
         List<Member> neighborhoodMembers = memberRepository.findByDong(member.getDong());
         List<Long> neighborhoodMemberIds = neighborhoodMembers.stream().map(Member::getId).collect(Collectors.toList());
-        List<DiagnosisResponse> neighborhoodResponses = diagnosisResponseRepository.findByUserIdIn(neighborhoodMemberIds);
+        List<DiagnosisResponse> neighborhoodResponses = neighborhoodMemberIds.stream()
+                .flatMap(userId -> diagnosisResponseRepository.findByUserId(userId).stream())
+                .collect(Collectors.toList());
 
         ReportResponseDto.SubjectiveMetricsDto subjectiveMetrics = buildSubjectiveMetrics(member, neighborhoodMembers, neighborhoodResponses);
 
@@ -342,7 +344,9 @@ public class ReportService {
     public ReportResponseDto getComprehensiveReport(Member member) {
         List<Member> neighborhoodMembers = memberRepository.findByDong(member.getDong());
         List<Long> neighborhoodMemberIds = neighborhoodMembers.stream().map(Member::getId).collect(Collectors.toList());
-        List<DiagnosisResponse> neighborhoodResponses = diagnosisResponseRepository.findByUserIdIn(neighborhoodMemberIds);
+        List<DiagnosisResponse> neighborhoodResponses = neighborhoodMemberIds.stream()
+                .flatMap(userId -> diagnosisResponseRepository.findByUserId(userId).stream())
+                .collect(Collectors.toList());
 
         ReportResponseDto.SubjectiveMetricsDto subjectiveMetrics = buildSubjectiveMetrics(member, neighborhoodMembers, neighborhoodResponses);
 
