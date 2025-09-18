@@ -6,6 +6,7 @@ import org.example.seasontonebackend.member.domain.Member;
 import org.example.seasontonebackend.report.dto.ReportRequestDto;
 import org.example.seasontonebackend.report.dto.ReportResponseDto;
 import org.example.seasontonebackend.report.service.ReportService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,7 +21,7 @@ public class ReportController {
     private final ReportService reportService;
     private final EmailService emailService; // EmailService 주입
 
-    public ReportController(ReportService reportService, EmailService emailService) {
+    public ReportController(ReportService reportService, @Autowired(required = false) EmailService emailService) {
         this.reportService = reportService;
         this.emailService = emailService; // 생성자에서 초기화
     }
@@ -35,6 +36,13 @@ public class ReportController {
     @PostMapping("/api/report/send-email")
     public ResponseEntity<?> sendDocumentByEmail(@RequestBody EmailRequest emailRequest) {
         try {
+            if (emailService == null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "메일 서비스가 설정되지 않았습니다.");
+                return new ResponseEntity<>(errorResponse, HttpStatus.SERVICE_UNAVAILABLE);
+            }
+            
             String subject = "월세의 정석: 생성된 법적 문서입니다.";
             emailService.sendSimpleMessage(emailRequest.getTo(), subject, emailRequest.getContent());
 
