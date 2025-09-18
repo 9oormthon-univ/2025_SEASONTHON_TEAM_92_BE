@@ -107,3 +107,15 @@ management:
   endpoint:
     health:
       show-details: always
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: kwh0912@gmail.com
+    password: pccvzejninsyynmr
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
