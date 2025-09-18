@@ -66,3 +66,17 @@ logging:
     root: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Spring Mail 설정
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: kwh0912@gmail.com
+    password: pccvzejninsyynmr
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true

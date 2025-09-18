@@ -1,5 +1,7 @@
 package org.example.seasontonebackend.report.controller;
 
+import lombok.Data;
+import org.example.seasontonebackend.common.service.EmailService;
 import org.example.seasontonebackend.member.domain.Member;
 import org.example.seasontonebackend.report.dto.ReportRequestDto;
 import org.example.seasontonebackend.report.dto.ReportResponseDto;
@@ -16,9 +18,38 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 public class ReportController {
     private final ReportService reportService;
+    private final EmailService emailService; // EmailService 주입
 
-    public ReportController(ReportService reportService) {
+    public ReportController(ReportService reportService, EmailService emailService) {
         this.reportService = reportService;
+        this.emailService = emailService; // 생성자에서 초기화
+    }
+
+    // 이메일 요청을 위한 DTO
+    @Data
+    static class EmailRequest {
+        private String to;
+        private String content;
+    }
+
+    @PostMapping("/api/report/send-email")
+    public ResponseEntity<?> sendDocumentByEmail(@RequestBody EmailRequest emailRequest) {
+        try {
+            String subject = "월세의 정석: 생성된 법적 문서입니다.";
+            emailService.sendSimpleMessage(emailRequest.getTo(), subject, emailRequest.getContent());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "이메일이 성공적으로 발송되었습니다.");
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "이메일 발송 중 오류가 발생했습니다: " + e.getMessage());
+
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 
