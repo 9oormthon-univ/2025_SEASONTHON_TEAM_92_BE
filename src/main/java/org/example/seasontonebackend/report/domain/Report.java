@@ -5,36 +5,52 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.example.seasontonebackend.member.domain.Member;
+
+import java.util.UUID;
 
 @Builder
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 public class Report {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "report_id")
     private Long reportId;
 
-    @Column(name = "primary_negotiation_card")
-    private String primaryNegotiationCard;
+    // UUID를 사용한 공유 가능한 고유 식별자
+    @Column(name = "public_id", unique = true, nullable = false)
+    private String publicId;
 
-//    @Column(name = "primary_negotiation_card_2")
-//    private String primaryNegotiationCard2;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
 
-    @Column(name = "secondary_negotiation_card")
-    private String secondaryNegotiationCard;
+    // 리포트 생성 시 사용자가 입력한 텍스트
+    @Column(name = "user_input", columnDefinition = "TEXT")
+    private String userInput;
+    
+    // 리포트 타입 ('free' 또는 'premium')
+    @Column(name = "report_type")
+    private String reportType;
+    
+    // 공유용 리포트 데이터 (JSON 형태로 저장)
+    @Column(name = "shared_report_data", columnDefinition = "TEXT")
+    private String sharedReportData;
+    
+    // 공유 가능 여부
+    @Builder.Default
+    @Column(name = "is_shareable")
+    private Boolean isShareable = true;
 
-//    @Column(name = "secondary_negotiation_card_2")
-//    private String secondaryNegotiationCard2;
-
-    @Column(name = "step_1")
-    private String step1;
-
-//    @Column(name = "step_2")
-//    private String step2;
-
-//    @Column(name = "member_id")
-//    private Long memberId;
+    @PrePersist
+    public void generatePublicId() {
+        if (this.publicId == null) {
+            this.publicId = UUID.randomUUID().toString();
+        }
+    }
 }

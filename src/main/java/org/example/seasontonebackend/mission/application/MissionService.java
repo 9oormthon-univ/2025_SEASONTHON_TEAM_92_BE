@@ -29,7 +29,7 @@ public class MissionService {
 
     // 현재 활성 미션 조회
     public MissionResponseDTO.CurrentMission getCurrentMission(Long memberId) {
-        WeeklyMission mission = missionRepository.findCurrentActiveMission()
+        WeeklyMission mission = missionRepository.findCurrentActiveMissionWithQuestions()
                 .orElseThrow(() -> new MissionException("현재 활성화된 미션이 없습니다."));
 
         Integer participationCount = missionRepository.countParticipantsByMissionId(mission.getMissionId());

@@ -1,68 +1,62 @@
 package org.example.seasontonebackend.member.service;
 
 
-
-import org.example.seasontonebackend.member.auth.JwtTokenProvider;
+import org.example.seasontonebackend.diagnosis.domain.repository.DiagnosisResponseRepository;
 import org.example.seasontonebackend.member.domain.Member;
-import org.example.seasontonebackend.member.domain.SocialType;
-import org.example.seasontonebackend.member.dto.*;
+import org.example.seasontonebackend.member.dto.MemberCreateDto;
+import org.example.seasontonebackend.member.dto.MemberDongBuildingRequestDto;
+import org.example.seasontonebackend.member.dto.MemberLoginDto;
+import org.example.seasontonebackend.member.dto.MemberProfileDto;
 import org.example.seasontonebackend.member.repository.MemberRepository;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClient;
 
+import java.util.Map;
 import java.util.Optional;
 
 @Service
 @Transactional
 public class MemberService {
-    @Value("${oauth.google.client-id}")
-    private String googleClientId;
-
-    @Value("${oauth.google.client-secret}")
-    private String googleClientSecret;
-
-    @Value("${oauth.google.redirect-uri}")
-    private String googleRedirectUri;
-
-    @Value("${oauth.kakao.client-id}")
-    private String kakaoClientId;
-
-    @Value("${oauth.kakao.redirect-uri}")
-    private String kakaoRedirectUri;
-
-
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final DiagnosisResponseRepository diagnosisResponseRepository;
 
-    public MemberService(MemberRepository memberRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider) {
+    public MemberService(MemberRepository memberRepository, PasswordEncoder passwordEncoder, DiagnosisResponseRepository diagnosisResponseRepository) {
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
-        this.jwtTokenProvider = jwtTokenProvider;
+        this.diagnosisResponseRepository = diagnosisResponseRepository;
     }
 
     public Member create(MemberCreateDto memberCreateDto) {
         Optional<Member> member = memberRepository.findByEmail(memberCreateDto.getEmail());
         if (member.isPresent()) {
             throw new IllegalStateException("이미 존재하는 이메일입니다.");
+
         }
+
 
         Member newMember = Member.builder()
                 .email(memberCreateDto.getEmail())
                 .name(memberCreateDto.getName())
                 .password(passwordEncoder.encode(memberCreateDto.getPassword()))
+                // 나머지 필드들은 기본값으로 초기화 (나중에 프로필 설정에서 업데이트)
+                .dong(null)
+                .building(null)
+                .buildingType(null)
+                .contractType(null)
+                .security(null)
+                .rent(null)
+                .maintenanceFee(null)
+                .gpsVerified(false)
+                .contractVerified(false)
+                .onboardingCompleted(false)
                 .build();
-
-        return memberRepository.save(newMember);
+        memberRepository.save(newMember);
+        return newMember;
     }
 
-    public String login(MemberLoginDto memberLoginDto) {
+    public Member login(MemberLoginDto memberLoginDto) {
         Optional<Member> optMember = memberRepository.findByEmail(memberLoginDto.getEmail());
         if (!optMember.isPresent()) {
             throw new IllegalArgumentException("no email found");
@@ -74,30 +68,45 @@ public class MemberService {
             throw new IllegalArgumentException("wrong password");
         }
 
-        String token = jwtTokenProvider.createToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
-
-        return token;
+        return member;
     }
 
 
 
 
 
-    public MemberProfileDto getMemberProfile(Long memberId) {
-
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new NullPointerException("Member not found"));
-
-            return MemberProfileDto.builder()
-                    .profileName(member.getName())
-                    .profileEmail(member.getEmail())
-                    .profileBuilding(member.getBuilding())
-                    .profileDong(member .getDong())
-                    .build();
-
+    public MemberProfileDto getMemberProfile(Member member) {
+        // 실제 진단 응답 데이터 존재 여부로 진단 완료 상태 판단
+        boolean hasDiagnosisResponses = !diagnosisResponseRepository.findByUserId(member.getId()).isEmpty();
+        
+        // 온보딩 완료 여부: 주소(dong)와 건물 정보가 모두 있는지 확인
+        boolean isOnboardingCompleted = member.getDong() != null && !member.getDong().isEmpty() && 
+                                       member.getBuilding() != null && !member.getBuilding().isEmpty();
+        
+        return MemberProfileDto.builder()
+                .profileName(member.getName())
+                .profileEmail(member.getEmail())
+                .profileBuilding(member.getBuilding())
+                .profileDong(member.getDong())
+                .name(member.getName())
+                .email(member.getEmail())
+                .dong(member.getDong())
+                .building(member.getBuilding())
+                .buildingType(member.getBuildingType())
+                .contractType(member.getContractType())
+                .security(member.getSecurity())
+                .rent(member.getRent())
+                .maintenanceFee(member.getMaintenanceFee())
+                .gpsVerified(member.getGpsVerified() != null && member.getGpsVerified())
+                .contractVerified(member.getContractVerified() != null && member.getContractVerified())
+                .onboardingCompleted(isOnboardingCompleted)
+                .diagnosisCompleted(hasDiagnosisResponses)
+                .build();
     }
 
     public void setMemberDongBuilding(MemberDongBuildingRequestDto memberDongBuildingRequestDto, Long memberId) {
-        Member member = memberRepository.findById(memberId).orElseThrow(() -> new NullPointerException("존재하지 않는 유저입니다"));
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NullPointerException("존재하지 않는 유저입니다"));
 
 
         member.setBuilding(memberDongBuildingRequestDto.getBuilding());
@@ -106,6 +115,8 @@ public class MemberService {
         member.setBuildingType(memberDongBuildingRequestDto.getBuildingType());
         member.setContractType(memberDongBuildingRequestDto.getContractType());
         member.setSecurity(memberDongBuildingRequestDto.getSecurity());
+        member.setRent(memberDongBuildingRequestDto.getRent());
+        member.setMaintenanceFee(memberDongBuildingRequestDto.getMaintenanceFee());
 
         System.out.println(memberId);
         System.out.println(member.getDong());
@@ -118,118 +129,57 @@ public class MemberService {
 
     }
 
-
-    public String googleGetToken(Long googleUser) {
-        Member member = memberRepository.findByIdAndSocialType(googleUser, SocialType.GOOGLE).orElseThrow(() -> new NullPointerException("존재하지 않는 유저입니다"));
-        String token = jwtTokenProvider.createToken(member.getId(), member.getEmail(), String.valueOf(member.getRole()));
-
-        return token;
+    public void updateUserInfo(Member member, Map<String, Object> updateData) {
+        boolean updated = false;
+        
+        if (updateData.containsKey("onboardingCompleted")) {
+            member.setOnboardingCompleted((Boolean) updateData.get("onboardingCompleted"));
+            updated = true;
         }
-
-    public void modifyMemberProfile(Member member, ModifyMemberProfileDto modifyMemberProfileDto) {
-        member.setName(modifyMemberProfileDto.getProfileName());
-//        member.setDong(modifyMemberProfileDto.getDong());
-        member.setBuilding(modifyMemberProfileDto.getProfileBuilding());
-        member.setEmail(modifyMemberProfileDto.getProfileEmail());
-
-        member.setDong(modifyMemberProfileDto.getDong());
-        member.setDetailAddress(modifyMemberProfileDto.getDetailAddress());
-        member.setBuilding(modifyMemberProfileDto.getProfileBuilding());
-//        member.setBuildingType(modifyMemberProfileDto.getBuildingType());
-//        member.setContractType(modifyMemberProfileDto.getContractType());
-//        member.setSecurity(modifyMemberProfileDto.getSecurity());
-
-
+        
+        if (updateData.containsKey("rent")) {
+            member.setRent(((Number) updateData.get("rent")).intValue());
+            updated = true;
+        }
+        
+        if (updateData.containsKey("maintenanceFee")) {
+            member.setMaintenanceFee(((Number) updateData.get("maintenanceFee")).intValue());
+            updated = true;
+        }
+        
+        if (updateData.containsKey("name") || updateData.containsKey("nickname")) {
+            String newName = (String) updateData.get("name");
+            if (newName == null) {
+                newName = (String) updateData.get("nickname");
+            }
+            if (newName != null && !newName.trim().isEmpty()) {
+                member.setName(newName.trim());
+                updated = true;
+            }
+        }
+        
+        if (updated) {
+            memberRepository.save(member);
+        }
+    }
+    
+    /**
+     * 사용자 닉네임을 업데이트합니다.
+     * @param member 업데이트할 사용자
+     * @param nickname 새로운 닉네임
+     * @throws IllegalArgumentException 닉네임이 유효하지 않은 경우
+     */
+    public void updateNickname(Member member, String nickname) {
+        if (nickname == null || nickname.trim().isEmpty()) {
+            throw new IllegalArgumentException("닉네임은 비어있을 수 없습니다.");
+        }
+        
+        String trimmedNickname = nickname.trim();
+        if (trimmedNickname.length() > 20) {
+            throw new IllegalArgumentException("닉네임은 20자를 초과할 수 없습니다.");
+        }
+        
+        member.setName(trimmedNickname);
         memberRepository.save(member);
-
-
-    }
-
-
-
-    public AccessTokenDto getAccessToken(String code){
-//        인가코드, clientId, client_secret, redirect_uri, grant_type
-
-//        Spring6부터 RestTemplate 비추천상태이기에, 대신 RestClient 사용
-        RestClient restClient = RestClient.create();
-
-//        MultiValueMap을 통해 자동으로 form-data형식으로 body 조립 가능
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("code", code);
-        params.add("client_id", googleClientId);
-        params.add("client_secret", googleClientSecret);
-        params.add("redirect_uri", googleRedirectUri);
-        params.add("grant_type", "authorization_code");
-
-        ResponseEntity<AccessTokenDto> response =  restClient.post()
-                .uri("https://oauth2.googleapis.com/token")
-                .header("Content-Type", "application/x-www-form-urlencoded")
-//                ?code=xxxx&client_id=yyyy&
-                .body(params)
-//                retrieve:응답 body값만을 추출
-                .retrieve()
-                .toEntity(AccessTokenDto.class);
-
-        System.out.println("응답 accesstoken JSON " + response.getBody());
-        return response.getBody();
-    }
-
-    public GoogleProfileDto getGoogleProfile(String token){
-        RestClient restClient = RestClient.create();
-        ResponseEntity<GoogleProfileDto> response =  restClient.get()
-                .uri("https://openidconnect.googleapis.com/v1/userinfo")
-                .header("Authorization", "Bearer "+token)
-                .retrieve()
-                .toEntity(GoogleProfileDto.class);
-        System.out.println("profile JSON" + response.getBody());
-        return response.getBody();
-    }
-
-    public Member getMemberBySocialId(String sub) {
-        Member member = memberRepository.findByProviderId(sub).orElse(null);
-        return member;
-    }
-
-    public Member createOauth(String sub, String email, SocialType socialType) {
-        Member member = Member.builder()
-                .providerId(sub)
-                .email(email)
-                .socialType(socialType)
-                .build();
-
-        memberRepository.save(member);
-        return member;
-    }
-
-    public AccessTokenDto getKakaoAccessToken(String code){
-        RestClient restClient = RestClient.create();
-
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("code", code);
-        params.add("client_id", kakaoClientId);
-        params.add("redirect_uri", kakaoRedirectUri);
-        params.add("grant_type", "authorization_code");
-
-        ResponseEntity<AccessTokenDto> response =  restClient.post()
-                .uri("https://kauth.kakao.com/oauth/token")
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .body(params)
-                .retrieve()
-                .toEntity(AccessTokenDto.class);
-
-        System.out.println("응답 accesstoken JSON " + response.getBody());
-        return response.getBody();
-    }
-
-    public KakaoProfileDto getKakaoProfile(String token){
-        RestClient restClient = RestClient.create();
-        ResponseEntity<KakaoProfileDto> response =  restClient.get()
-                .uri("https://kapi.kakao.com/v2/user/me")
-                .header("Authorization", "Bearer "+token)
-                .retrieve()
-                .toEntity(KakaoProfileDto.class);
-        System.out.println("profile JSON" + response.getBody());
-        return response.getBody();
     }
 }
-

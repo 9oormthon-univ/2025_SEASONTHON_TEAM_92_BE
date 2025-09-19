@@ -1,9 +1,6 @@
 package org.example.seasontonebackend.member.domain;
 
-
-
 import jakarta.persistence.*;
-
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -35,20 +32,40 @@ public class Member implements UserDetails {
     @Builder.Default
     private Role role = Role.User; // 권한
 
-    private String building; // 건물이름
+    private String building;
 
     @Column(name = "detail_address")
-    private String detailAddress; // 상세주소
+    private String detailAddress;
 
     @Column(name = "building_type")
-    private String buildingType; // 빌라, 아파트 원룸
+    private String buildingType;
 
     @Column(name = "contract_type")
-    private String contractType; // 계약 종류
+    private String contractType;
 
     private Long security; // 보증금
 
-    private String dong; // 기본 주소, ~~시 ~~동
+    private Integer rent; // 월세
+
+    private Integer maintenanceFee; // 관리비
+
+    @Column(name = "is_gps_verified")
+    @Builder.Default
+    private Boolean gpsVerified = false; // GPS 인증 여부
+
+    @Column(name = "is_contract_verified")
+    @Builder.Default
+    private Boolean contractVerified = false; // 계약서 인증 여부
+
+    private String dong;
+
+    @Column(name = "onboarding_completed")
+    @Builder.Default
+    private Boolean onboardingCompleted = false; // 온보딩 완료 여부
+
+    @Column(name = "diagnosis_completed")
+    @Builder.Default
+    private Boolean diagnosisCompleted = false; // 진단 완료 여부
 
     @Column(name = "provider_id")
     private String providerId; // 구글 로그인 고유 식별 id
@@ -65,7 +82,7 @@ public class Member implements UserDetails {
 
     @Override
     public String getUsername() {
-        return name; // 로그인 ID로 email 사용
+        return email; // 로그인 ID로 email 사용
     }
 
     @Override

@@ -7,6 +7,8 @@ import org.example.seasontonebackend.location.dto.LocationVerificationRequest;
 import org.example.seasontonebackend.location.dto.LocationVerificationResponse;
 import org.example.seasontonebackend.location.dto.AddressPreviewResponse;
 import org.example.seasontonebackend.location.exception.LocationException;
+import org.example.seasontonebackend.member.domain.Member;
+import org.example.seasontonebackend.member.repository.MemberRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 위치 인증 API 컨트롤러
@@ -31,6 +34,7 @@ import java.util.Map;
 public class LocationController {
 
     private final LocationService locationService;
+    private final MemberRepository memberRepository;
 
     /**
      * GPS 좌표를 이용한 위치 인증
@@ -73,6 +77,17 @@ public class LocationController {
                 return ResponseEntity.badRequest().body(errorResult);
             }
 
+            // userId로 Member 객체 조회
+            Optional<Member> memberOpt = memberRepository.findById(Long.parseLong(userId));
+            if (memberOpt.isEmpty()) {
+                Map<String, Object> errorResult = new HashMap<>();
+                errorResult.put("success", false);
+                errorResult.put("data", null);
+                errorResult.put("message", "사용자를 찾을 수 없습니다.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResult);
+            }
+            Member member = memberOpt.get();
+
             // userId를 포함한 완전한 요청 객체 생성
             LocationVerificationRequest fullRequest = LocationVerificationRequest.builder()
                     .latitude(request.getLatitude())
@@ -80,7 +95,7 @@ public class LocationController {
                     .buildingName(request.getBuildingName())
                     .build();
 
-            LocationVerificationResponse response = locationService.verifyLocation(fullRequest, userId);
+            LocationVerificationResponse response = locationService.verifyLocation(fullRequest, member);
 
             Map<String, Object> result = new HashMap<>();
             result.put("success", true);
@@ -140,6 +155,29 @@ public class LocationController {
             errorResult.put("data", null);
             errorResult.put("message", "주소 조회 중 오류가 발생했습니다.");
 
+            return ResponseEntity.internalServerError().body(errorResult);
+        }
+    }
+
+    /**
+     * 주소 문자열로부터 법정동 코드를 조회 (인증 없이)
+     */
+    @GetMapping("/lawd-code")
+    public ResponseEntity<Map<String, Object>> getLawdCodeFromAddress(@RequestParam String address) {
+        log.info("🔎 법정동 코드 조회 요청 - 주소: {}", address);
+        try {
+            Map<String, String> lawdCodeMap = locationService.getLawdCode(address);
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("data", lawdCodeMap);
+            result.put("message", "법정동 코드 조회 성공");
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("❌ 법정동 코드 조회 실패", e);
+            Map<String, Object> errorResult = new HashMap<>();
+            errorResult.put("success", false);
+            errorResult.put("data", null);
+            errorResult.put("message", "법정동 코드 조회 중 오류가 발생했습니다.");
             return ResponseEntity.internalServerError().body(errorResult);
         }
     }

@@ -14,6 +14,9 @@ public interface WeeklyMissionRepository extends JpaRepository<WeeklyMission, Lo
     @Query("SELECT m FROM WeeklyMission m WHERE m.isActive = true AND CURRENT_DATE BETWEEN m.startDate AND m.endDate")
     Optional<WeeklyMission> findCurrentActiveMission();
 
+    @Query("SELECT m FROM WeeklyMission m LEFT JOIN FETCH m.questions WHERE m.isActive = true AND CURRENT_DATE BETWEEN m.startDate AND m.endDate")
+    Optional<WeeklyMission> findCurrentActiveMissionWithQuestions();
+
     @Query("SELECT COUNT(DISTINCT r.member.id) FROM UserMissionResponse r WHERE r.mission.missionId = :missionId")
     Integer countParticipantsByMissionId(@Param("missionId") Long missionId);
 }

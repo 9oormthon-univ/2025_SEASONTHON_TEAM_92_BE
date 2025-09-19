@@ -13,6 +13,18 @@ java {
         languageVersion = JavaLanguageVersion.of(17)
     }
 }
+bootJar {
+    archiveFileName = "SeasonToneBackend.jar"
+    // JAR 파일 최적화
+    enabled = true
+    archiveClassifier = ''
+}
+
+// JAR 파일 크기 최적화
+jar {
+    enabled = false
+    archiveClassifier = ''
+}
 
 repositories {
     mavenCentral()
@@ -21,11 +33,14 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.mysql:mysql-connector-j'
+    runtimeOnly 'com.h2database:h2' // H2 데이터베이스 추가
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
@@ -41,6 +56,9 @@ dependencies {
 
     // =====  Location 기능을 위한 추가 의존성 =====
     implementation 'org.json:json:20231013'
+
+    // ===== API 명세서를 위한 추가 의존성 =====
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
 
 }
 

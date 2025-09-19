@@ -12,5 +12,7 @@ public class MemberDongBuildingRequestDto {
     public String buildingType;
     public String contractType;
     public Long security; // 보증금
+    public Integer rent; // 월세
+    public Integer maintenanceFee; // 관리비
 
 }

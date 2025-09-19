@@ -1,0 +1,138 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    username: ${MYSQLUSER}
+    password: ${MYSQLPASSWORD}
+  jpa:
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQLDialect
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    show_sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - profile
+              - email
+              - openid
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            client-name: Kakao
+            scope:
+              - profile_nickname
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+profiles:
+  active: railway
+
+jwt:
+  secret: ${JWT_SECRET:b2F1dGhzZXJ2ZXJzZWNyZXRhY2Nlc3N0b2tlbm9hdXRoc2VydmVyc2VjcmV0YWNjZXNzdG9rZW5vYXV0aHNlcnZlcnNlY3JldGFjY2Vzc3Rva2Vu}
+  expiration: ${JWT_EXPIRATION:3000}
+
+oauth2:
+  redirect:
+    url: ${OAUTH_REDIRECT_URL:https://rental-lovat-theta.vercel.app/auth/social-login}
+
+# 오피스텔 API 설정
+officetel:
+  api:
+    service-key: ${OFFICETEL_API_SERVICE_KEY:e20aoTYyOLpe4UPR3I70w+QLG5abe/L7o0QOJ4bOpnyRTZcTFrYAKb/MVp+/lNY8IMzLLdvjvf6BRGb7Tpa2OA==}
+    base-url: https://apis.data.go.kr/1613000/RTMSDataSvcOffiRent/getRTMSDataSvcOffiRent
+    request:
+      max-rows: 100
+      months-to-fetch: 3
+      timeout: 10s
+
+# VWorld Geocoding API 설정 (GPS 좌표 -> 주소 변환)
+vworld:
+  api:
+    key: ${VWORLD_API_KEY:D2B43972-B325-3DEF-9F41-FF3316FD3AB0}
+    url: https://rental-lovat-theta.vercel.app/api/vworld-proxy
+    enabled: ${VWORLD_API_ENABLED:true}
+
+# Spring Mail 설정 (환경변수가 있을 때만 활성화)
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
+
+
+# 정책 API 설정 (해커톤용 - 추후 확장 가능)
+policy:
+  api:
+    cache-duration: 3600  # 1시간 캐시
+    max-results: 50       # 최대 결과 수
+    default-region: "전국" # 기본 지역
+
+server:
+  port: ${PORT:8080}
+  tomcat:
+    connection-timeout: 0
+  servlet:
+    context-path: /
+  forward-headers-strategy: framework
+
+# 로깅 설정
+logging:
+  level:
+    org.springframework.web: INFO
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO
+    org.example.seasontonebackend: DEBUG
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Railway 환경변수 디버깅을 위한 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,env
+  endpoint:
+    health:
+      show-details: always
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: kwh0912@gmail.com
+    password: pccvzejninsyynmr
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
